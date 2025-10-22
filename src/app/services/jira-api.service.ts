@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { JIRA_TEAMS } from "../constants/jira-teams";
 import { JiraApiResponse } from "../models/ticket.model";
+import { environment } from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class JiraApiService {
     const auth = btoa(`${emailValue}:${apiTokenValue}`);
 
     const jql = `Team[Team] = "${teamGuid}" AND (${sprintQueries}) AND resolved IS EMPTY ORDER BY key`;
-    const url = `/api/jira/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
+    const url = `${environment.jiraBaseUrl}/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
     
     const response = await fetch(url, {
       method: 'GET',
