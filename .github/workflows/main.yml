@@ -27,17 +27,8 @@ jobs:
       - name: Set up Environment Variables
         # Expose the necessary secrets as environment variables for the current step
         env:
-          JIRA_API_KEY: ${{ secrets.JIRA_API_KEY }}
-          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           JIRA_INSTANCE: ${{ secrets.JIRA_INSTANCE }}
         run: |
-          # 1. Replace the API Key placeholder
-          sed -i 's#__API_KEY_PLACEHOLDER__#${{ secrets.JIRA_API_KEY }}#g' src/environments/environment.prod.ts
-          
-          # 2. Replace the Email placeholder
-          sed -i 's#__EMAIL_PLACEHOLDER__#${{ secrets.JIRA_EMAIL }}#g' src/environments/environment.prod.ts
-
-          # 3. Replace the Jira Instance placeholder
           sed -i 's#__JIRA_INSTANCE_PLACEHOLDER__#${{ secrets.JIRA_INSTANCE }}#g' src/environments/environment.prod.ts
 
       - name: Build Angular App
