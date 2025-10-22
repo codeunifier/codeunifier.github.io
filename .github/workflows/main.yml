@@ -42,11 +42,11 @@ jobs:
           JIRA_INSTANCE: ${{ secrets.JIRA_INSTANCE }}
 
       - name: Build Angular App
-        run: ng build --base-href / --configuration production
+        run: npx ng build --base-href / --configuration production
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/jira-blocker-chain-angular
+          publish_dir: ./dist/jira-blocker-chain-angular/browser
           publish_branch: gh-pages
