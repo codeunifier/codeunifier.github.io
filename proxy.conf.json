@@ -1,0 +1,11 @@
+{
+  "/api/jira": {
+    "target": "https://packback.atlassian.net",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/jira": ""
+    },
+    "logLevel": "debug"
+  }
+}

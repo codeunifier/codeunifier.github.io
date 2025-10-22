@@ -1,0 +1,98 @@
+<div class="container">
+  <div class="controls">
+    <h1>Jira Blocker Chain Visualizer</h1>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        [(ngModel)]="email"
+        placeholder="your.email@example.com">
+      <div class="help-text">Your Jira account email address</div>
+    </div>
+
+    <div class="form-group">
+      <label for="team">Team</label>
+      <select id="team" [(ngModel)]="team">
+        <option value="">Select a team...</option>
+        <option value="Armadillo">Armadillo</option>
+        <option value="Backpack">Backpack</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="sprints">Sprint Numbers</label>
+      <input
+        type="text"
+        id="sprints"
+        [(ngModel)]="sprints"
+        placeholder="e.g., 45 or 45,46,47">
+      <div class="help-text">Enter one or more sprint numbers separated by commas</div>
+    </div>
+
+    <button (click)="fetchAndVisualize()" [disabled]="isLoading()">
+      {{ isLoading() ? 'Fetching...' : 'Fetch & Visualize' }}
+    </button>
+
+    @if (errorMessage()) {
+      <div class="error">{{ errorMessage() }}</div>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>Fetching tickets from Jira...</div>
+    </div>
+  }
+
+  @if (hasData()) {
+    <div class="stats">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Total Tickets</div>
+          <div class="stat-value">{{ stats().total }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Blocking Tickets</div>
+          <div class="stat-value">{{ stats().blocking }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Blocked Tickets</div>
+          <div class="stat-value">{{ stats().blocked }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Independent Tickets</div>
+          <div class="stat-value">{{ stats().independent }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="graph-container">
+      <svg #graphSvg id="graph"></svg>
+    </div>
+
+    <div class="legend">
+      <h3>Legend</h3>
+      <div class="legend-items">
+        <div class="legend-item">
+          <div class="legend-circle" [style.background]="colors.Green"></div>
+          <span>Done</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-circle" [style.background]="colors.Peach"></div>
+          <span>In Progress</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-circle" [style.background]="colors.Blue"></div>
+          <span>To Do</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-circle" [style.background]="colors.Gray"></div>
+          <span>Other Status</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

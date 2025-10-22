@@ -1,0 +1,34 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Or your default branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup steps (Node.js, npm install, etc.) would go here...
+
+      - name: Set up Environment Variables
+        run: |
+          # 1. Replace the API Key placeholder
+          sed -i 's|__API_KEY_PLACEHOLDER__|${{ secrets.JIRA_API_KEY }}|g' src/environments/environment.prod.ts
+          
+          # 2. Replace the Email placeholder
+          sed -i 's|__EMAIL_PLACEHOLDER__|${{ secrets.JIRA_EMAIL }}|g' src/environments/environment.prod.ts
+
+          # 3. Replace the Jira Instance placeholder
+          sed -i 's|__JIRA_INSTANCE_PLACEHOLDER__|${{ secrets.JIRA_INSTANCE }}|g' src/environments/environment.prod.ts
+
+        # Expose the necessary secrets as environment variables for the current step
+        env:
+          JIRA_API_KEY: ${{ secrets.JIRA_API_KEY }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_INSTANCE: ${{ secrets.JIRA_INSTANCE }}
+
+      - name: Build Angular App
+        run: ng build --base-href / --configuration production

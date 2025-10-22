@@ -1,0 +1,41 @@
+/* Global Styles */
+@use 'colors';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: colors.$PB_grey_light;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+input, select {
+  background-color: colors.$PB_white;
+}
+
+label {
+  color: colors.$PB_smoke;
+  font-weight: 700;
+}
+
+h1 {
+  color: colors.$PB_blue;
+}
+
+input, select, textarea {
+  border: 2px solid colors.$PB_smoke;
+
+  &:focus {
+    outline: none;
+    border-color: colors.$PB_blue;
+  }
+}
