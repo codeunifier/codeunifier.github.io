@@ -18,6 +18,7 @@ import { Colors } from '../../constants/colors';
 export class VisualizerComponent {
   @ViewChild('graphSvg', { static: false }) graphSvg?: ElementRef<SVGSVGElement>;
 
+  protected readonly projectName = signal(environment.jiraProjectName);
   protected readonly apiToken = signal(environment.jiraApiToken);
   protected readonly email = signal(environment.jiraAccountEmail);
   protected readonly team = signal('Armadillo');
@@ -36,6 +37,7 @@ export class VisualizerComponent {
   async fetchAndVisualize(): Promise<void> {
     this.errorMessage.set('');
 
+    const projectName = this.projectName().trim() || environment.jiraProjectName || '';
     const apiTokenValue = this.apiToken() || environment.jiraApiToken || '';
     const emailValue = this.email().trim();
     const teamValue = this.team();
@@ -50,7 +52,7 @@ export class VisualizerComponent {
       this.isLoading.set(true);
 
       // Use the proxy endpoint to avoid CORS issues
-      const data: JiraApiResponse = await this.jiraApi.getTickets(emailValue, apiTokenValue, teamValue, sprintsValue);
+      const data: JiraApiResponse = await this.jiraApi.getTickets(emailValue, projectName, apiTokenValue, teamValue, sprintsValue);
 
       if (!data.issues || data.issues.length === 0) {
         this.errorMessage.set('No tickets found for the specified team and sprint(s)');
@@ -91,7 +93,7 @@ export class VisualizerComponent {
   private visualize(): void {
     if (this.graphData) {
       this.visualizer.visualizeGraph(this.graphData, (id: string) => {
-        const jiraUrl = `https://${environment.jiraInstance}/browse/${id}`;
+        const jiraUrl = `https://${this.projectName()}.atlassian.net/browse/${id}`;
         window.open(jiraUrl, '_blank');
       }, this.graphSvg);
     }

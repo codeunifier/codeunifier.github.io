@@ -1,10 +1,10 @@
 {
-  "/api/jira": {
+  "/api/proxy/packback": {
     "target": "https://packback.atlassian.net",
     "secure": true,
     "changeOrigin": true,
     "pathRewrite": {
-      "^/api/jira": ""
+      "^/api/proxy/packback": ""
     },
     "logLevel": "debug"
   }

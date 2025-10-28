@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/api/proxy/:project/*"
+  to = "https://:project.atlassian.net/rest/api/3/:splat"
+  status = 200
+  force = true

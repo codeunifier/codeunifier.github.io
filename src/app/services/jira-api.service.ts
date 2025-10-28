@@ -1,13 +1,18 @@
 import { Injectable } from "@angular/core";
 import { JIRA_TEAMS } from "../constants/jira-teams";
 import { JiraApiResponse } from "../models/ticket.model";
-import { environment } from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class JiraApiService {
-  async getTickets(emailValue: string, apiTokenValue: string, teamName: string, sprints: string): Promise<JiraApiResponse> {
+  async getTickets(
+    emailValue: string,
+    projectName: string,
+    apiTokenValue: string,
+    teamName: string,
+    sprints: string
+  ): Promise<JiraApiResponse> {
     const teamGuid = JIRA_TEAMS.get(teamName);
 
     const sprintNumbers = sprints.split(',').map(s => s.trim());
@@ -16,7 +21,7 @@ export class JiraApiService {
     const auth = btoa(`${emailValue}:${apiTokenValue}`);
 
     const jql = `Team[Team] = "${teamGuid}" AND (${sprintQueries}) AND resolved IS EMPTY ORDER BY key`;
-    const url = `${environment.jiraBaseUrl}/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
+    const url = `/api/proxy/${projectName}/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
     
     const response = await fetch(url, {
       method: 'GET',
