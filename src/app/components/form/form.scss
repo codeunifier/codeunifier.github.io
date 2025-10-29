@@ -16,15 +16,8 @@
     margin-bottom: spacing.$small;
   }
 
-  input,
-  select,
-  textarea {
+  mat-form-field {
     width: 100%;
-    padding: spacing.$standard;
-    border-radius: 4px;
-    font-size: font-sizes.$standard;
-    font-family: inherit;
-
   }
 
   textarea {

@@ -8,14 +8,14 @@ import { FormData } from "../models/form-data.model";
 })
 export class JiraApiService {
   async getTickets(formData: FormData): Promise<JiraApiResponse> {
-    const teamGuid = JIRA_TEAMS.get(formData.team);
+    const teamGuids = formData.teams.map((team) => JIRA_TEAMS.get(team)).join(',');
 
     const sprintNumbers = formData.sprints.split(',').map(s => s.trim());
     const sprintQueries = sprintNumbers.map(num => `sprint = ${num}`).join(' OR ');
 
     const auth = btoa(`${formData.email}:${formData.apiToken}`);
 
-    const jql = `Team[Team] = "${teamGuid}" AND (${sprintQueries}) AND resolved IS EMPTY ORDER BY key`;
+    const jql = `Team[Team] IN (${teamGuids}) AND (${sprintQueries}) AND resolved IS EMPTY ORDER BY key`;
     const url = `/api/proxy/${formData.projectName}/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
     
     const response = await fetch(url, {

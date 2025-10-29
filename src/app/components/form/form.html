@@ -1,53 +1,56 @@
 <div class="controls-group">
     <div class="form-group">
-        <label for="project-name">Project Name</label>
-        <input
-        type="text"
-        id="project-name"
-        [(ngModel)]="projectName"
-        placeholder="packback">
-        <div class="help-text">Your Jira project name (&lt;project&gt;.atlassian.net)</div>
+        <mat-form-field>
+            <mat-label>Project Name</mat-label>
+            <input matInput id="project-name" placeholder="Project Name" required [(ngModel)]="projectName">
+            <mat-hint>Your Jira project name (&lt;project&gt;.atlassian.net)</mat-hint>
+        </mat-form-field>
     </div>
 
     <div class="form-group">
-        <label for="email">Email</label>
+        <mat-form-field>
+            <mat-label>Email</mat-label>
+            <input matInput id="email" type="email" placeholder="your.email@example.com" required [(ngModel)]="email">
+            <mat-hint>Your Jira account email address</mat-hint>
+        </mat-form-field>
+    </div>
+</div>
+
+<div class="form-group">
+    <mat-form-field>
+        <mat-label>API Token</mat-label>
         <input
-        type="email"
-        id="email"
-        [(ngModel)]="email"
-        placeholder="your.email@example.com">
-        <div class="help-text">Your Jira account email address</div>
-</div>
-</div>
-
-<div class="form-group">
-    <label for="api-token">API Token</label>
-    <input
-    type="password"
-    id="api-token"
-    [(ngModel)]="apiToken"
-    placeholder="Your Jira API token">
-    <div class="help-text">Generate a token at: Jira Settings > Personal Access Tokens</div>
+        matInput
+        type="password"
+        id="api-token"
+        [(ngModel)]="apiToken"
+        placeholder="Your Jira API token">
+        <mat-hint>Generate a token at: Jira Settings > Personal Access Tokens</mat-hint>
+    </mat-form-field>
 </div>
 
 <div class="form-group">
-    <label for="team">Team</label>
-    <select id="team" [(ngModel)]="team">
-    <option value="">Select a team...</option>
-    <option value="Armadillo">Armadillo</option>
-    <option value="Backpack">Backpack</option>
-    <option value="AI">AI</option>
-    </select>
+    <mat-form-field>
+        <mat-label>Team(s)</mat-label>
+        <mat-select id="teams" required multiple [(ngModel)]="teams">
+            <mat-option value="Armadillo">Armadillo</mat-option>
+            <mat-option value="Backpack">Backpack</mat-option>
+            <mat-option value="AI">AI</mat-option>
+        </mat-select>
+    </mat-form-field>
 </div>
 
 <div class="form-group">
-    <label for="sprints">Sprint Numbers</label>
-    <input
-    type="text"
-    id="sprints"
-    [(ngModel)]="sprints"
-    placeholder="e.g., 45 or 45,46,47">
-    <div class="help-text">Enter one or more sprint numbers separated by commas</div>
+    <mat-form-field>
+        <mat-label>Sprint Codes</mat-label>
+        <input
+        matInput
+        type="text"
+        id="sprints"
+        [(ngModel)]="sprints"
+        placeholder="e.g., U07 or B07,C07,D07">
+        <mat-hint>Enter one or more sprint codes separated by commas</mat-hint>
+    </mat-form-field>
 </div>
 
 <button (click)="validateAndSubmit()" [disabled]="disableSubmit">
