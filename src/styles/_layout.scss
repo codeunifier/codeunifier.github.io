@@ -17,7 +17,8 @@ button {
   }
 
   &:disabled {
-    background: colors.$PB_grey_light;
+    background: colors.$PB_blue_light;
+    opacity: .7;
     cursor: not-allowed;
   }
 }

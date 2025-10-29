@@ -2,7 +2,7 @@
     <div class="form-group">
         <mat-form-field>
             <mat-label>Project Name</mat-label>
-            <input matInput id="project-name" placeholder="Project Name" required [(ngModel)]="projectName">
+            <input matInput required id="project-name" placeholder="Project Name" [(ngModel)]="projectName">
             <mat-hint>Your Jira project name (&lt;project&gt;.atlassian.net)</mat-hint>
         </mat-form-field>
     </div>
@@ -10,7 +10,7 @@
     <div class="form-group">
         <mat-form-field>
             <mat-label>Email</mat-label>
-            <input matInput id="email" type="email" placeholder="your.email@example.com" required [(ngModel)]="email">
+            <input matInput required id="email" type="email" placeholder="your.email@example.com" [(ngModel)]="email">
             <mat-hint>Your Jira account email address</mat-hint>
         </mat-form-field>
     </div>
@@ -21,6 +21,7 @@
         <mat-label>API Token</mat-label>
         <input
         matInput
+        required
         type="password"
         id="api-token"
         [(ngModel)]="apiToken"
@@ -45,6 +46,7 @@
         <mat-label>Sprint Codes</mat-label>
         <input
         matInput
+        required
         type="text"
         id="sprints"
         [(ngModel)]="sprints"
@@ -53,10 +55,12 @@
     </mat-form-field>
 </div>
 
-<button (click)="validateAndSubmit()" [disabled]="disableSubmit">
+<button (click)="validateAndSubmit()" [disabled]="disableSubmit || !isFormValid()">
     Fetch & Visualize
 </button>
 
-@if (errorMessage()) {
-    <div class="error">{{ errorMessage() }}</div>
+@if (!isFormValid()) {
+    @for (error of formErrors(); track error) {
+        <div class="error">{{ error }}</div>
+    }
 }
