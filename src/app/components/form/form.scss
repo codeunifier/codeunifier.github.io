@@ -32,3 +32,9 @@
   color: #6B778C;
   margin-top: spacing.$small;
 }
+
+.checkboxes-container {
+  display: flex;
+  flex-direction: column;
+  gap: spacing.$small;
+}

@@ -1,3 +1,4 @@
+import { JiraApiService } from "../services/jira-api.service";
 import { IssueLink } from "./issue-link.model";
 
 export interface JiraTicket {
@@ -7,23 +8,10 @@ export interface JiraTicket {
     status: {
       name: string;
     };
+    [JiraApiService.TEAM_CUSTOM_FIELD]: {
+      id: string;
+      name: string;
+    };
     issuelinks?: IssueLink[];
   };
-}
-
-
-
-
-
-
-
-export interface JiraApiResponse {
-  issues: JiraTicket[];
-}
-
-export interface BlockerStats {
-  total: number;
-  blocking: number;
-  blocked: number;
-  independent: number;
 }

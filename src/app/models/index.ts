@@ -4,3 +4,7 @@ export * from './graph/graph-node.model';
 export * from './graph/graph-link.model';
 export * from './issue-link.model';
 export * from './form-data.model';
+export * from './jira-api-response.model';
+export * from './blocker-stats.model';
+export * from './graph/node-shape.enum';
+export * from './teams.enum';

@@ -4,4 +4,6 @@ export interface FormData {
     email: string;
     teams: Array<string>;
     sprints: string;
+    includeDone: boolean;
+    includeExternal: boolean;
 }

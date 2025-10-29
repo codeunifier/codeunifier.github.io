@@ -5,10 +5,11 @@ import { FormControl, FormGroup, FormsModule } from '@angular/forms';
 import { FormData } from '../../models';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-form',
-  imports: [CommonModule, FormsModule, MatInputModule, MatSelectModule],
+  imports: [CommonModule, FormsModule, MatCheckboxModule, MatInputModule, MatSelectModule],
   templateUrl: './form.html',
   styleUrls: ['./form.scss'],
   standalone: true
@@ -21,6 +22,8 @@ export class FormComponent implements OnInit {
   protected readonly email = signal(environment.jiraAccountEmail);
   protected readonly teams = signal(['Armadillo']);
   protected readonly sprints = signal('');
+  protected readonly includeDone = signal(false);
+  protected readonly includeExternal = signal(false);
   protected readonly errorMessage = signal('');
 
   protected readonly formValue = computed(() => ({
@@ -28,7 +31,9 @@ export class FormComponent implements OnInit {
     apiToken: this.apiToken(),
     email: this.email(),
     teams: this.teams(),
-    sprints: this.sprints()
+    sprints: this.sprints(),
+    includeDone: this.includeDone(),
+    includeExternal: this.includeExternal()
   }));
 
   protected readonly formErrors = computed(() => {
@@ -61,32 +66,13 @@ export class FormComponent implements OnInit {
       apiToken: new FormControl(this.apiToken()),
       email: new FormControl(this.email()),
       teams: new FormControl(this.teams()),
-      sprints: new FormControl(this.sprints())
+      sprints: new FormControl(this.sprints()),
+      includeDone: new FormControl(this.includeDone()),
+      includeExternal: new FormControl(this.includeExternal())
     });
   }
 
-  validateAndSubmit(): void {
-    // this.errorMessage.set('');
-
-    // const projectNameValue = this.projectName().trim() || environment.jiraProjectName || '';
-    // const apiTokenValue = this.apiToken() || environment.jiraApiToken || '';
-    // const emailValue = this.email().trim();
-    // const teamsValue = this.teams();
-    // const sprintsValue = this.sprints().trim();
-
-    // if (!projectNameValue || !apiTokenValue || !emailValue || !teamsValue.length || !sprintsValue) {
-    //   this.errorMessage.set('Please fill in all fields');
-    //   return;
-    // }
-
-    // const formData: FormData = {
-    //   projectName: projectNameValue,
-    //   apiToken: apiTokenValue,
-    //   email: emailValue,
-    //   teams: teamsValue,
-    //   sprints: sprintsValue
-    // };
-
+  onSubmit(): void {
     this.formSubmit.emit(this.formValue());
   }
 }

@@ -69,16 +69,18 @@ export class VisualizerService {
         .on('drag', (event, d) => this.dragged(event, d))
         .on('end', (event, d) => this.dragended(event, d, simulation)));
 
-    node.append('circle')
-      .attr('r', this.nodeSize)
-      .attr('fill', (d: any) => d.color)
-      .attr('stroke', '#fff')
-      .attr('stroke-width', 3)
-      .style('cursor', 'pointer')
-      .on('click', (event: any, d: any) => {
-        event.stopPropagation();
-        onClick(d.id);
-      });
+    node.each((d: any, i, elements) => {
+      const gElement = d3.select(elements[i]);
+      const shape = d.shape || 'circle';
+
+      if (shape === 'triangle') {
+        this.appendTriangle(gElement, d, onClick);
+      } else if (shape === 'circle') {
+        this.appendCircle(gElement, d, onClick);
+      } else {
+        this.appendSquare(gElement, d, onClick);
+      }
+    });
 
     node.append('text')
       .text((d: any) => d.label)
@@ -109,6 +111,65 @@ export class VisualizerService {
 
       node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
     });
+  }
+
+  private appendCircle(gElement: d3.Selection<SVGGElement, unknown, null, undefined>, d: any, onClick: (id: string) => void): void {
+    gElement.append('circle')
+      .attr('r', this.nodeSize)
+      .attr('fill', (d: any) => d.color)
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 3)
+      .style('cursor', 'pointer')
+      .on('click', (event: any, d: any) => {
+        event.stopPropagation();
+        onClick(d.id);
+      });
+  }
+
+  private appendTriangle(gElement: d3.Selection<SVGGElement, unknown, null, undefined>, d: any, onClick: (id: string) => void): void {
+    const size = this.nodeSize;
+    const halfSize = size / 2;
+    
+    // Approximate the height of an equilateral triangle
+    // The y coordinates are inverted in SVG (y=0 is the top).
+    const h = size * Math.sqrt(3) / 2;
+    const yOffset = h / 3; // Offset to center the triangle mass
+    
+    const points = [
+      { x: 0, y: -h * 2/3 }, // Top point
+      { x: -halfSize, y: h * 1/3 }, // Bottom-left point
+      { x: halfSize, y: h * 1/3 }  // Bottom-right point
+    ].map(p => `${p.x},${p.y}`).join(' '); // Format for the 'points' attribute
+    
+    gElement.append('polygon')
+      .attr('points', points)
+      .attr('fill', d.color)
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 3)
+      .style('cursor', 'pointer')
+      .on('click', (event: any, d: any) => {
+        event.stopPropagation();
+        onClick(d.id);
+      });
+  }
+
+  private appendSquare(gElement: d3.Selection<SVGGElement, unknown, null, undefined>, d: any, onClick: (id: string) => void): void {
+    const size = this.nodeSize * 2;
+    const halfSize = size / 2;
+
+    gElement.append('rect')
+      .attr('x', -halfSize)
+      .attr('y', -halfSize)
+      .attr('width', size)
+      .attr('height', size)
+      .attr('fill', d.color)
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 3)
+      .style('cursor', 'pointer')
+      .on('click', (event: any, d: any) => {
+        event.stopPropagation();
+        onClick(d.id);
+      });
   }
 
   private dragstarted(event: any, d: any, simulation: any): void {

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Colors } from '../constants/colors';
-import { GraphData, GraphLink, GraphNode, JiraTicket } from '../models';
+import { GraphData, GraphLink, GraphNode, JiraTicket, NodeShape, Teams } from '../models';
+import { JiraApiService } from './jira-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -58,7 +59,8 @@ export class JiraParserService {
                 label: issue.key,
                 summary: issue.fields.summary,
                 status: issue.fields.status.name,
-                color: this.getStatusColor(issue.fields.status.name)
+                color: this.getStatusColor(issue.fields.status.name),
+                shape: this.getShapeForTeam((issue.fields[JiraApiService.TEAM_CUSTOM_FIELD] as { name: string })?.name)
               };
               nodes.push(node);
               ticketMap.set(issue.key, node);
@@ -69,5 +71,16 @@ export class JiraParserService {
     });
 
     return { nodes, links };
+  }
+
+  private getShapeForTeam(teamName?: string): NodeShape {
+    switch (teamName) {
+      case Teams.Backpack:
+        return NodeShape.Triangle;
+      case Teams.Armadillo:
+        return NodeShape.Circle;
+      default:
+        return NodeShape.Square;
+    }
   }
 }

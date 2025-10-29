@@ -20,8 +20,6 @@
   }
 }
 
-
-
 .error {
   background: #FFEBE6;
   border: 1px solid #FF5630;
@@ -124,6 +122,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: spacing.$large;
+  margin-top: spacing.$standard;
 }
 
 .legend-item {
@@ -137,4 +136,29 @@
   height: 20px;
   border-radius: 50%;
   border: 2px solid #333;
+}
+
+.legend-shape {
+  &.square {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #333;
+    background-color: #333;
+  }
+
+  &.circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #333;
+    background-color: #333;
+  }
+
+  &.triangle {
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 20px solid #333;
+  }
 }

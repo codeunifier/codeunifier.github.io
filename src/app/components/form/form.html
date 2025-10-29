@@ -41,21 +41,28 @@
     </mat-form-field>
 </div>
 
-<div class="form-group">
-    <mat-form-field>
-        <mat-label>Sprint Codes</mat-label>
-        <input
-        matInput
-        required
-        type="text"
-        id="sprints"
-        [(ngModel)]="sprints"
-        placeholder="e.g., U07 or B07,C07,D07">
-        <mat-hint>Enter one or more sprint codes separated by commas</mat-hint>
-    </mat-form-field>
+<div class="controls-group">
+    <div class="form-group">
+        <mat-form-field>
+            <mat-label>Sprint Codes</mat-label>
+            <input
+            matInput
+            required
+            type="text"
+            id="sprints"
+            [(ngModel)]="sprints"
+            placeholder="e.g., U07 or B07,C07,D07">
+            <mat-hint>Enter one or more sprint codes separated by commas</mat-hint>
+        </mat-form-field>
+    </div>
+
+    <div class="form-group checkboxes-container">
+        <mat-checkbox id="include-done" [(ngModel)]="includeDone">Include Done Tickets</mat-checkbox>
+        <mat-checkbox id="include-external" [(ngModel)]="includeExternal">Include External Tickets</mat-checkbox>
+    </div>
 </div>
 
-<button (click)="validateAndSubmit()" [disabled]="disableSubmit || !isFormValid()">
+<button (click)="onSubmit()" [disabled]="disableSubmit || !isFormValid()">
     Fetch & Visualize
 </button>
 
