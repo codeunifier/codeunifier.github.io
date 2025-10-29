@@ -73,12 +73,20 @@ export class VisualizerService {
       const gElement = d3.select(elements[i]);
       const shape = d.shape || 'circle';
 
-      if (shape === 'triangle') {
-        this.appendTriangle(gElement, d, onClick);
-      } else if (shape === 'circle') {
-        this.appendCircle(gElement, d, onClick);
-      } else {
-        this.appendSquare(gElement, d, onClick);
+      switch (shape) {
+        case 'hexagon':
+          this.appendHexagon(gElement, d, onClick);
+          break;
+        case 'triangle':
+          this.appendTriangle(gElement, d, onClick);
+          break;
+        case 'circle':
+          this.appendCircle(gElement, d, onClick);
+          break;
+        case 'square':
+        default:
+          this.appendSquare(gElement, d, onClick);
+          break;
       }
     });
 
@@ -126,20 +134,38 @@ export class VisualizerService {
       });
   }
 
+  // the triangle works but the text is cut off in the middle
   private appendTriangle(gElement: d3.Selection<SVGGElement, unknown, null, undefined>, d: any, onClick: (id: string) => void): void {
     const size = this.nodeSize;
-    const halfSize = size / 2;
     
     // Approximate the height of an equilateral triangle
     // The y coordinates are inverted in SVG (y=0 is the top).
     const h = size * Math.sqrt(3) / 2;
-    const yOffset = h / 3; // Offset to center the triangle mass
     
     const points = [
-      { x: 0, y: -h * 2/3 }, // Top point
-      { x: -halfSize, y: h * 1/3 }, // Bottom-left point
-      { x: halfSize, y: h * 1/3 }  // Bottom-right point
+      { x: 0, y: -h }, // Top point
+      { x: -size, y: h }, // Bottom-left point
+      { x: size, y: h }  // Bottom-right point
     ].map(p => `${p.x},${p.y}`).join(' '); // Format for the 'points' attribute
+    
+    gElement.append('polygon')
+      .attr('points', points)
+      .attr('fill', d.color)
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 3)
+      .style('cursor', 'pointer')
+      .on('click', (event: any, d: any) => {
+        event.stopPropagation();
+        onClick(d.id);
+      });
+  }
+
+  private appendHexagon(gElement: d3.Selection<SVGGElement, unknown, null, undefined>, d: any, onClick: (id: string) => void): void {
+    const size = this.nodeSize;
+    const points = Array.from({ length: 6 }, (_, i) => {
+      const angle = (Math.PI / 3) * i - Math.PI / 2; // Start from the top
+      return `${size * Math.cos(angle)},${size * Math.sin(angle)}`;
+    }).join(' ');
     
     gElement.append('polygon')
       .attr('points', points)

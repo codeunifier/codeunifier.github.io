@@ -76,7 +76,7 @@ export class JiraParserService {
   private getShapeForTeam(teamName?: string): NodeShape {
     switch (teamName) {
       case Teams.Backpack:
-        return NodeShape.Triangle;
+        return NodeShape.Hexagon;
       case Teams.Armadillo:
         return NodeShape.Circle;
       default:

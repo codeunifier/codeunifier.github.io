@@ -1,5 +1,6 @@
 export enum NodeShape {
     Circle = 'circle',
     Triangle = 'triangle',
-    Square = 'square'
+    Square = 'square',
+    Hexagon = 'hexagon'
 }
