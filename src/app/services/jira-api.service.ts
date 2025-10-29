@@ -17,9 +17,12 @@ export class JiraApiService {
 
     // Then, fetch the tickets that are blocking the previously fetched tickets as there may be dependencies outside of the team / board parameters
     const blockingTickets = formData.includeExternal ? await this.fetchBlockingTickets(auth, formData, tickets.issues) : { issues: [] };
+
+    // Then, fetch the tickets that are being blocked by the previously fetched tickets as there may be dependencies outside of the team / board parameters
+    const blockedTickets = formData.includeExternal ? await this.fetchBlockedTickets(auth, formData, tickets.issues) : { issues: [] };
     
     // Combine both sets of tickets
-    const allTickets: JiraTicket[] = [...tickets.issues, ...blockingTickets.issues];
+    const allTickets: JiraTicket[] = [...tickets.issues, ...blockingTickets.issues, ...blockedTickets.issues];
     
     return { issues: allTickets };
   }
@@ -68,7 +71,7 @@ export class JiraApiService {
     }
 
     const jql = `key IN (${Array.from(blockingKeys).join(',')}) ${formData.includeDone ? '' : 'AND resolved IS EMPTY'} ORDER BY key`;
-    const url = `/api/proxy/${formData.projectName}/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
+    const url = `/api/proxy/${formData.projectName}/rest/api/latest/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
 
     return fetch(url, {
       method: 'GET',
@@ -81,6 +84,43 @@ export class JiraApiService {
     .then(response => {
       if (!response.ok) {
         throw new Error(`Failed to fetch blocking tickets: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    });
+  }
+
+  private fetchBlockedTickets(auth: string, formData: FormData, tickets: Array<JiraTicket>): Promise<JiraApiResponse> {
+    const blockedKeys = new Set<string>();
+    const existingKeys = new Set(tickets.map(ticket => ticket.key));
+
+    tickets.forEach(ticket => {
+      ticket.fields.issuelinks?.forEach(link => {
+        if (link.type.outward === 'blocks' && link.outwardIssue) {
+          if (!existingKeys.has(link.outwardIssue.key)) {
+            blockedKeys.add(link.outwardIssue.key);
+          }
+        }
+      });
+    });
+
+    if (blockedKeys.size === 0) {
+      return Promise.resolve({ issues: [] });
+    }
+
+    const jql = `key IN (${Array.from(blockedKeys).join(',')}) ${formData.includeDone ? '' : 'AND resolved IS EMPTY'} ORDER BY key`;
+    const url = `/api/proxy/${formData.projectName}/rest/api/latest/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
+
+    return fetch(url, {
+      method: 'GET',
+      headers: {
+          'Authorization': `Basic ${auth}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blocked tickets: ${response.status} ${response.statusText}`);
       }
       return response.json();
     });
