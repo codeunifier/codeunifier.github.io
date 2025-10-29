@@ -3,27 +3,22 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JiraParserService } from '../../services/jira-parser.service';
 import { GraphData, BlockerStats, JiraApiResponse } from '../../models/ticket.model';
-import { environment } from '../../../environments/environment';
 import { JiraApiService } from '../../services/jira-api.service';
 import { VisualizerService } from '../../services/visualizer.service';
 import { Colors } from '../../constants/colors';
+import { FormComponent } from '../form/form';
+import { FormData } from '../../models/form-data.model';
 
 @Component({
   selector: 'app-visualizer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormComponent, FormsModule],
   templateUrl: './visualizer.component.html',
   styleUrl: './visualizer.component.scss'
 })
 export class VisualizerComponent {
   @ViewChild('graphSvg', { static: false }) graphSvg?: ElementRef<SVGSVGElement>;
 
-  protected readonly projectName = signal(environment.jiraProjectName);
-  protected readonly apiToken = signal(environment.jiraApiToken);
-  protected readonly email = signal(environment.jiraAccountEmail);
-  protected readonly team = signal('Armadillo');
-  protected readonly sprints = signal('');
-  protected readonly errorMessage = signal('');
   protected readonly isLoading = signal(false);
   protected readonly stats = signal<BlockerStats>({ total: 0, blocking: 0, blocked: 0, independent: 0 });
   protected readonly hasData = signal(false);
@@ -34,28 +29,15 @@ export class VisualizerComponent {
 
   constructor(private jiraParser: JiraParserService, private jiraApi: JiraApiService, private visualizer: VisualizerService) {}
 
-  async fetchAndVisualize(): Promise<void> {
-    this.errorMessage.set('');
-
-    const projectName = this.projectName().trim() || environment.jiraProjectName || '';
-    const apiTokenValue = this.apiToken() || environment.jiraApiToken || '';
-    const emailValue = this.email().trim();
-    const teamValue = this.team();
-    const sprintsValue = this.sprints().trim();
-
-    if (!apiTokenValue || !emailValue || !teamValue || !sprintsValue) {
-      this.errorMessage.set('Please fill in all fields');
-      return;
-    }
-
+  async fetchAndVisualize(formData: FormData): Promise<void> {
     try {
       this.isLoading.set(true);
 
       // Use the proxy endpoint to avoid CORS issues
-      const data: JiraApiResponse = await this.jiraApi.getTickets(emailValue, projectName, apiTokenValue, teamValue, sprintsValue);
+      const data: JiraApiResponse = await this.jiraApi.getTickets(formData.email, formData.projectName, formData.apiToken, formData.team, formData.sprints);
 
       if (!data.issues || data.issues.length === 0) {
-        this.errorMessage.set('No tickets found for the specified team and sprint(s)');
+        // this.errorMessage.set('No tickets found for the specified team and sprint(s)');
         this.isLoading.set(false);
         return;
       }
@@ -67,12 +49,12 @@ export class VisualizerComponent {
 
       // Use setTimeout to ensure the DOM has updated before visualizing
       setTimeout(() => {
-        this.visualize();
+        this.visualize(formData.projectName);
         this.isLoading.set(false);
       }, 100);
     } catch (error) {
       console.error('Error:', error);
-      this.errorMessage.set(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // this.errorMessage.set(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       this.isLoading.set(false);
     }
   }
@@ -90,10 +72,10 @@ export class VisualizerComponent {
     });
   }
 
-  private visualize(): void {
+  private visualize(projectName: string): void {
     if (this.graphData) {
       this.visualizer.visualizeGraph(this.graphData, (id: string) => {
-        const jiraUrl = `https://${this.projectName()}.atlassian.net/browse/${id}`;
+        const jiraUrl = `https://${projectName}.atlassian.net/browse/${id}`;
         window.open(jiraUrl, '_blank');
       }, this.graphSvg);
     }

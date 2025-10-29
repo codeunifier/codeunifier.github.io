@@ -1,0 +1,41 @@
+@use 'spacing';
+@use 'font-sizes';
+
+.controls-group {
+    display: flex;
+    justify-content: space-between;
+    gap: spacing.$large;
+}
+
+.form-group {
+  margin-bottom: spacing.$standard;
+  width: 100%;
+
+  label {
+    display: block;
+    margin-bottom: spacing.$small;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: spacing.$standard;
+    border-radius: 4px;
+    font-size: font-sizes.$standard;
+    font-family: inherit;
+
+  }
+
+  textarea {
+    min-height: 300px;
+    font-family: 'Courier New', monospace;
+    font-size: font-sizes.$help-text;
+  }
+}
+
+.help-text {
+  font-size: font-sizes.$help-text;
+  color: #6B778C;
+  margin-top: spacing.$small;
+}

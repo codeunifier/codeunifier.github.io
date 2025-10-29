@@ -1,4 +1,6 @@
 @use 'colors';
+@use 'font-sizes';
+@use 'spacing';
 
 .container {
   max-width: 1400px;
@@ -8,87 +10,34 @@
 
 .controls {
   background: colors.$PB_white;
-  padding: 24px;
+  padding: spacing.$large;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  margin-bottom: spacing.$large;
 
   h1 {
-    margin-bottom: 20px;
+    margin-bottom: spacing.$large;
   }
 }
 
 
-.form-group {
-  margin-bottom: 16px;
-
-  label {
-    display: block;
-    margin-bottom: 6px;
-  }
-
-  input,
-  select,
-  textarea {
-    width: 100%;
-    padding: 10px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-family: inherit;
-
-  }
-
-  textarea {
-    min-height: 300px;
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-  }
-}
-
-.help-text {
-  font-size: 12px;
-  color: #6B778C;
-  margin-top: 4px;
-}
-
-
-button {
-  background: #1b6d91;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #1c516a;
-  }
-
-  &:disabled {
-    background: #DFE1E6;
-    cursor: not-allowed;
-  }
-}
 
 .error {
   background: #FFEBE6;
   border: 1px solid #FF5630;
   color: #BF2600;
-  padding: 12px;
+  padding: spacing.$standard;
   border-radius: 4px;
-  margin-top: 16px;
+  margin-top: spacing.$standard;
 }
 
 .loading {
   text-align: center;
-  padding: 40px;
+  padding: spacing.$large;
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  margin-bottom: spacing.$large;
 }
 
 .spinner {
@@ -98,7 +47,7 @@ button {
   width: 40px;
   height: 40px;
   animation: spin 1s linear infinite;
-  margin: 0 auto 12px;
+  margin: 0 auto spacing.$standard;
 }
 
 @keyframes spin {
@@ -128,10 +77,10 @@ button {
 
 .stats {
   background: white;
-  padding: 16px;
+  padding: spacing.$large;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  margin-bottom: spacing.$large;
 }
 
 .stats-grid {
@@ -141,32 +90,32 @@ button {
 }
 
 .stat-item {
-  padding: 12px;
+  padding: spacing.$standard;
   background: #F4F5F7;
   border-radius: 4px;
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: font-sizes.$help-text;
   color: #6B778C;
   margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: font-sizes.$header;
   font-weight: 600;
   color: #172B4D;
 }
 
 .legend {
   background: white;
-  padding: 16px;
+  padding: spacing.$large;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
+  margin-top: spacing.$large;
 
   h3 {
-    margin-bottom: 12px;
+    margin-bottom: spacing.$standard;
     color: #172B4D;
   }
 }
@@ -174,13 +123,13 @@ button {
 .legend-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: spacing.$large;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: spacing.$small;
 }
 
 .legend-circle {

@@ -1,0 +1,23 @@
+@use 'colors';
+@use 'spacing';
+
+button {
+  background: colors.$PB_blue;
+  color: colors.$PB_white;
+  border: none;
+  padding: spacing.$standard spacing.$large;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: colors.$PB_blue_dark;
+  }
+
+  &:disabled {
+    background: colors.$PB_grey_light;
+    cursor: not-allowed;
+  }
+}
