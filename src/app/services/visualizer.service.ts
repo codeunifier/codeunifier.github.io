@@ -1,7 +1,7 @@
 import { ElementRef, Injectable } from "@angular/core";
-import { GraphData } from "../models/ticket.model";
 
 import * as d3 from 'd3';
+import { GraphData } from "../models";
 
 @Injectable({
   providedIn: 'root'

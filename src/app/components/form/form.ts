@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { FormData } from '../../models/form-data.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { FormData } from '../../models';
 
 @Component({
   selector: 'app-form',

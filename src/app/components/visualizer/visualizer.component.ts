@@ -1,13 +1,12 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JiraParserService } from '../../services/jira-parser.service';
-import { GraphData, BlockerStats, JiraApiResponse } from '../../models/ticket.model';
 import { JiraApiService } from '../../services/jira-api.service';
 import { VisualizerService } from '../../services/visualizer.service';
 import { Colors } from '../../constants/colors';
 import { FormComponent } from '../form/form';
-import { FormData } from '../../models/form-data.model';
+import { BlockerStats, FormData, GraphData, JiraApiResponse } from '../../models';
 
 @Component({
   selector: 'app-visualizer',
@@ -34,7 +33,7 @@ export class VisualizerComponent {
       this.isLoading.set(true);
 
       // Use the proxy endpoint to avoid CORS issues
-      const data: JiraApiResponse = await this.jiraApi.getTickets(formData.email, formData.projectName, formData.apiToken, formData.team, formData.sprints);
+      const data: JiraApiResponse = await this.jiraApi.getTickets(formData);
 
       if (!data.issues || data.issues.length === 0) {
         // this.errorMessage.set('No tickets found for the specified team and sprint(s)');
@@ -44,7 +43,7 @@ export class VisualizerComponent {
 
       this.graphData = this.jiraParser.processTicketsFromJson(data.issues);
 
-      this.updateStats(this.graphData);
+      this.updateStats(this.graphData!);
       this.hasData.set(true);
 
       // Use setTimeout to ensure the DOM has updated before visualizing

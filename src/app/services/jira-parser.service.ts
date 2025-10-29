@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { GraphData, GraphNode, JiraTicket, GraphLink } from '../models/ticket.model';
 import { Colors } from '../constants/colors';
+import { GraphData, GraphLink, GraphNode, JiraTicket } from '../models';
 
 @Injectable({
   providedIn: 'root'
