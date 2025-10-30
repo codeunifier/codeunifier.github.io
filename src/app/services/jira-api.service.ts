@@ -9,22 +9,59 @@ import { JiraApiResponse, JiraTicket } from "../models";
 export class JiraApiService {
   static TEAM_CUSTOM_FIELD = 'customfield_10001';
 
+  protected readonly FIELDS = 'key,issuetype,summary,status,issuelinks,' + JiraApiService.TEAM_CUSTOM_FIELD;
+  protected readonly JIRA_API = '/rest/api/latest/search/jql';
+
   async getTickets(formData: FormData): Promise<JiraApiResponse> {
     const auth = btoa(`${formData.email}:${formData.apiToken}`);
 
     // First, fetch the tickets that match the team and sprint criteria
     const tickets = await this.fetchFilteredTickets(auth, formData);
+    console.log('base tickets', tickets);
 
     // Then, fetch the tickets that are blocking the previously fetched tickets as there may be dependencies outside of the team / board parameters
-    const blockingTickets = formData.includeExternal ? await this.fetchBlockingTickets(auth, formData, tickets.issues) : { issues: [] };
+    const blockingTickets = await this.fetchBlockingTickets(auth, formData, tickets.issues);
+    console.log('blocking tickets', blockingTickets);
 
     // Then, fetch the tickets that are being blocked by the previously fetched tickets as there may be dependencies outside of the team / board parameters
-    const blockedTickets = formData.includeExternal ? await this.fetchBlockedTickets(auth, formData, tickets.issues) : { issues: [] };
+    const blockedTickets = await this.fetchBlockedTickets(auth, formData, tickets.issues);
+    console.log('blocked tickets', blockedTickets);
     
     // Combine both sets of tickets
-    const allTickets: JiraTicket[] = [...tickets.issues, ...blockingTickets.issues, ...blockedTickets.issues];
+    const combinedTickets: JiraTicket[] = this.combineTickets(tickets.issues, blockingTickets.issues, blockedTickets.issues);
     
-    return { issues: allTickets };
+    return { issues: combinedTickets };
+  }
+
+  private combineTickets(tickets: JiraTicket[], blockingTickets: JiraTicket[], blockedTickets: JiraTicket[]): JiraTicket[] {
+    // loop through the "tickets" array and overwrite the linked tickets with those from the blockingTickets and blockedTickets arrays
+    tickets.forEach(ticket => {
+      if (ticket.fields.issuelinks && ticket.fields.issuelinks.length > 0) {
+        for (let i = 0; i < ticket.fields.issuelinks?.length; i++) {
+          const link = ticket.fields.issuelinks[i];
+
+          if (link.type.inward === 'is blocked by' && link.type.outward === 'blocks') {
+            if (link.inwardIssue) {
+              const inwardIssue = tickets.find(t => t.key === link.inwardIssue?.key) ?? blockingTickets.find(t => t.key === link.inwardIssue?.key);
+
+              if (inwardIssue) {
+                ticket.fields.issuelinks[i].inwardIssue = inwardIssue;
+              }
+            }
+
+            if (link.outwardIssue) {
+              const outwardIssue = tickets.find(t => t.key === link.outwardIssue?.key) ?? blockedTickets.find(t => t.key === link.outwardIssue?.key);
+
+              if (outwardIssue) {
+                ticket.fields.issuelinks[i].outwardIssue = outwardIssue;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return tickets;
   }
 
   private async fetchFilteredTickets(auth: string, formData: FormData): Promise<JiraApiResponse> {
@@ -33,8 +70,8 @@ export class JiraApiService {
     const sprintNumbers = formData.sprints.split(',').map(s => s.trim());
     const sprintQueries = sprintNumbers.map(num => `sprint = ${num}`).join(' OR ');
 
-    const jql = `"Team[Team]" IN (${teamGuids}) AND (${sprintQueries}) ${formData.includeDone ? '' : 'AND resolved IS EMPTY'} ORDER BY key`;
-    const url = `/api/proxy/${formData.projectName}/rest/api/latest/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks,${JiraApiService.TEAM_CUSTOM_FIELD}&maxResults=1000`;
+    const jql = `"Team[Team]" IN (${teamGuids}) AND type != "QAlity Test" AND (${sprintQueries}) ${formData.includeDone ? '' : 'AND status NOT IN (DONE, "Won\'t Fix")'} ORDER BY key`;
+    const url = this.buildUrl(formData.projectName, jql);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -66,12 +103,14 @@ export class JiraApiService {
       });
     });
 
+    console.log('Blocking keys:', blockingKeys);
+
     if (blockingKeys.size === 0) {
       return Promise.resolve({ issues: [] });
     }
 
-    const jql = `key IN (${Array.from(blockingKeys).join(',')}) ${formData.includeDone ? '' : 'AND resolved IS EMPTY'} ORDER BY key`;
-    const url = `/api/proxy/${formData.projectName}/rest/api/latest/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
+    const jql = `key IN (${Array.from(blockingKeys).join(',')}) AND type != "QAlity Test" ${formData.includeDone ? '' : 'AND status NOT IN (DONE, "Won\'t Fix")'} ORDER BY key`;
+    const url = this.buildUrl(formData.projectName, jql);
 
     return fetch(url, {
       method: 'GET',
@@ -103,12 +142,14 @@ export class JiraApiService {
       });
     });
 
+      console.log('Blocked keys:', blockedKeys);
+
     if (blockedKeys.size === 0) {
       return Promise.resolve({ issues: [] });
     }
 
-    const jql = `key IN (${Array.from(blockedKeys).join(',')}) ${formData.includeDone ? '' : 'AND resolved IS EMPTY'} ORDER BY key`;
-    const url = `/api/proxy/${formData.projectName}/rest/api/latest/search/jql?jql=${encodeURIComponent(jql)}&fields=key,summary,status,issuelinks&maxResults=1000`;
+    const jql = `key IN (${Array.from(blockedKeys).join(',')}) AND type != "QAlity Test" ${formData.includeDone ? '' : 'AND status NOT IN (DONE, "Won\'t Fix")'} ORDER BY key`;
+    const url = this.buildUrl(formData.projectName, jql);
 
     return fetch(url, {
       method: 'GET',
@@ -124,5 +165,9 @@ export class JiraApiService {
       }
       return response.json();
     });
+  }
+
+  private buildUrl(projectName: string, jql: string): string {
+    return `/api/proxy/${projectName}${this.JIRA_API}?jql=${encodeURIComponent(jql)}&fields=${this.FIELDS}&maxResults=1000`;
   }
 }

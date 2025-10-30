@@ -4,6 +4,10 @@ import { IssueLink } from "./issue-link.model";
 export interface JiraTicket {
   key: string;
   fields: {
+    issuetype: {
+      id: string;
+      name: string;
+    };
     summary: string;
     status: {
       name: string;

@@ -19,51 +19,72 @@ export class JiraParserService {
     return Colors.Gray;
   }
 
-  processTicketsFromJson(issues: JiraTicket[]): GraphData {
+  processTicketsFromJson(issues: JiraTicket[], includeDone: boolean): GraphData {
     const nodes: GraphNode[] = [];
     const links: GraphLink[] = [];
-    const ticketMap = new Map<string, GraphNode>();
+    const allTickets = new Map<string, GraphNode>();
+
+    const createAndAddNode = (issue: JiraTicket) => {
+      if (allTickets.has(issue.key)) {
+        return allTickets.get(issue.key)!;
+      }
+
+      const node: GraphNode = {
+        id: issue.key,
+        label: issue.key,
+        summary: issue.fields.summary,
+        status: issue.fields.status.name,
+        color: this.getStatusColor(issue.fields.status.name),
+        shape: this.getShapeForTeam((issue.fields[JiraApiService.TEAM_CUSTOM_FIELD] as { name: string })?.name)
+      };
+      nodes.push(node);
+      allTickets.set(issue.key, node);
+      return node;
+    };
 
     issues.forEach(issue => {
-      let node: GraphNode;
+      let primaryNodeCreated = false;
 
       if (issue.fields.issuelinks) {
         issue.fields.issuelinks.forEach(link => {
           if (link.type.name === 'Blocks') {
-            let hasUnfinishedBlocker = false;
+            const isUnfinished = (issue: JiraTicket) => 
+              (includeDone || (issue.fields.status.name.toLowerCase() !== 'done' && 
+              issue.fields.status.name.toLowerCase() !== "won't fix")) &&
+              issue.fields.issuetype.name !== 'QAlity Test';
             
-            if (link.outwardIssue && link.outwardIssue.fields.status.name.toLowerCase() !== 'done') {
-              hasUnfinishedBlocker = true;
-              const targetKey = link.outwardIssue.key;
-              if (ticketMap.has(targetKey)) {
-                links.push({
-                  source: issue.key,
-                  target: targetKey
-                });
+            if (link.outwardIssue && isUnfinished(link.outwardIssue as unknown as JiraTicket)) {
+              const targetIssue = link.outwardIssue;
+              const targetKey = targetIssue.key;
+
+              createAndAddNode(targetIssue as unknown as JiraTicket);
+
+              if (!primaryNodeCreated) {
+                createAndAddNode(issue);
+                primaryNodeCreated = true;
               }
-            }
-            if (link.inwardIssue && link.inwardIssue.fields.status.name.toLowerCase() !== 'done') {
-              hasUnfinishedBlocker = true;
-              const sourceKey = link.inwardIssue.key;
-              if (ticketMap.has(sourceKey)) {
-                links.push({
-                  source: sourceKey,
-                  target: issue.key
-                });
-              }
+              
+              links.push({
+                source: issue.key,
+                target: targetKey
+              });
             }
 
-            if (hasUnfinishedBlocker && !node) {
-              node = {
-                id: issue.key,
-                label: issue.key,
-                summary: issue.fields.summary,
-                status: issue.fields.status.name,
-                color: this.getStatusColor(issue.fields.status.name),
-                shape: this.getShapeForTeam((issue.fields[JiraApiService.TEAM_CUSTOM_FIELD] as { name: string })?.name)
-              };
-              nodes.push(node);
-              ticketMap.set(issue.key, node);
+            if (link.inwardIssue && isUnfinished(link.inwardIssue as unknown as JiraTicket)) {
+              const sourceIssue = link.inwardIssue;
+              const sourceKey = sourceIssue.key;
+
+              createAndAddNode(sourceIssue as unknown as JiraTicket);
+
+              if (!primaryNodeCreated) {
+                createAndAddNode(issue);
+                primaryNodeCreated = true;
+              }
+              
+              links.push({
+                source: sourceKey,
+                target: issue.key
+              });
             }
           }
         });
@@ -79,8 +100,11 @@ export class JiraParserService {
         return NodeShape.Hexagon;
       case Teams.Armadillo:
         return NodeShape.Circle;
-      default:
+      case Teams.AI:
         return NodeShape.Square;
+      default:
+        console.log(teamName);
+        return NodeShape.Triangle;
     }
   }
 }

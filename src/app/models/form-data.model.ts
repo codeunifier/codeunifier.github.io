@@ -5,5 +5,4 @@ export interface FormData {
     teams: Array<string>;
     sprints: string;
     includeDone: boolean;
-    includeExternal: boolean;
 }
