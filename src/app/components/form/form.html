@@ -16,19 +16,24 @@
     </div>
 </div>
 
-<div class="form-group">
-    <mat-form-field>
-        <mat-label>API Token</mat-label>
-        <input
-        matInput
-        required
-        type="password"
-        id="api-token"
-        [(ngModel)]="apiToken"
-        placeholder="Your Jira API token">
-        <mat-hint>Generate a token at: Jira Settings > Personal Access Tokens</mat-hint>
-    </mat-form-field>
+<div class="controls-group">
+    <div class="form-group">
+        <mat-form-field>
+            <mat-label>API Token</mat-label>
+            <input
+            matInput
+            required
+            type="password"
+            id="api-token"
+            [(ngModel)]="apiToken"
+            placeholder="Your Jira API token">
+            <mat-hint>Generate a token at: Jira Settings > Personal Access Tokens</mat-hint>
+        </mat-form-field>
+    </div>
+    <mat-checkbox id="remember-token" [(ngModel)]="rememberToken">Remember me</mat-checkbox>
 </div>
+
+<div class="divider"></div>
 
 <div class="form-group">
     <mat-form-field>

@@ -6,6 +6,8 @@ import { FormData } from '../../models';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { LocalStorageService } from '../../services/local-storage.service';
+import { LocalData } from '../../models/local-data.model';
 
 @Component({
   selector: 'app-form',
@@ -20,6 +22,7 @@ export class FormComponent implements OnInit {
   protected readonly projectName = signal(environment.jiraProjectName);
   protected readonly apiToken = signal(environment.jiraApiToken);
   protected readonly email = signal(environment.jiraAccountEmail);
+  protected readonly rememberToken = signal(false);
   protected readonly teams = signal(['Armadillo']);
   protected readonly sprints = signal('');
   protected readonly includeDone = signal(false);
@@ -54,8 +57,21 @@ export class FormComponent implements OnInit {
 
   @Output() formSubmit = new EventEmitter<FormData>();
 
+  constructor(private localStorageService: LocalStorageService) {}
+
   ngOnInit(): void {
+    const localData = this.localStorageService.getFromLocalStorage();
+    this.initFromLocalData(localData);
     this.initForm();
+  }
+
+  private initFromLocalData(localData?: LocalData): void {
+    this.projectName.set(localData?.projectName || '');
+    this.apiToken.set(localData?.apiToken || '');
+    this.email.set(localData?.email || '');
+    if (localData) {
+      this.rememberToken.set(true);
+    }
   }
 
   private initForm(): void {
@@ -70,6 +86,12 @@ export class FormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.rememberToken()) {
+      this.localStorageService.saveToLocalStorage(this.formValue());
+    } else {
+      this.localStorageService.clearLocalStorage();
+    }
+
     this.formSubmit.emit(this.formValue());
   }
 }
