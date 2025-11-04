@@ -42,7 +42,7 @@ export class VisualizerComponent {
         return;
       }
 
-      this.graphData = this.jiraParser.processTicketsFromJson(data.issues, formData.includeDone);
+      this.graphData = this.jiraParser.processTicketsFromJson(data.issues, formData);
 
       this.updateStats(this.graphData!);
       this.hasData.set(true);

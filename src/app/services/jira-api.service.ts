@@ -8,9 +8,26 @@ import { JiraApiResponse, JiraTicket } from "../models";
 })
 export class JiraApiService {
   static TEAM_CUSTOM_FIELD = 'customfield_10001';
+  static SPRINT_CUSTOM_FIELD = 'customfield_10008';
 
-  protected readonly FIELDS = 'key,issuetype,summary,status,issuelinks,' + JiraApiService.TEAM_CUSTOM_FIELD;
+  protected readonly FIELDS = 'key,issuetype,summary,status,issuelinks,sprint,' + JiraApiService.TEAM_CUSTOM_FIELD + ',' + JiraApiService.SPRINT_CUSTOM_FIELD;
   protected readonly JIRA_API = '/rest/api/latest/search/jql';
+
+  static getTeamName(fields: any): string | undefined {
+    const teamField = fields[JiraApiService.TEAM_CUSTOM_FIELD];
+    return teamField ? teamField.name : undefined;
+  }
+
+  static getSprintNames(fields: any): string[] {
+    const sprintField = fields[JiraApiService.SPRINT_CUSTOM_FIELD];
+    if (!sprintField || !Array.isArray(sprintField)) {
+      return [];
+    }
+
+    return sprintField.map((sprint: any) => {
+      return sprint.name;
+    }).filter((name: string) => name !== '');
+  }
 
   async getTickets(formData: FormData): Promise<JiraApiResponse> {
     const auth = btoa(`${formData.email}:${formData.apiToken}`);

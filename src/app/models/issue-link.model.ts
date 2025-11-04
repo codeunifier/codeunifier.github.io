@@ -10,12 +10,20 @@ export interface IssueLink {
       status: {
         name: string;
       };
+      issuetype: {
+        id: string;
+        name: string;
+      };
     };
   };
   inwardIssue?: {
     key: string;
     fields: {
       status: {
+        name: string;
+      };
+      issuetype: {
+        id: string;
         name: string;
       };
     };

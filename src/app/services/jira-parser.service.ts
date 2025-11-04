@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Colors } from '../constants/colors';
-import { GraphData, GraphLink, GraphNode, JiraTicket, NodeShape, Teams } from '../models';
+import { FormData, GraphData, GraphLink, GraphNode, IssueLink, JiraTicket, NodeShape, Teams } from '../models';
 import { JiraApiService } from './jira-api.service';
 
 @Injectable({
@@ -19,7 +19,7 @@ export class JiraParserService {
     return Colors.Gray;
   }
 
-  processTicketsFromJson(issues: JiraTicket[], includeDone: boolean): GraphData {
+  processTicketsFromJson(issues: JiraTicket[], formData: FormData): GraphData {
     const nodes: GraphNode[] = [];
     const links: GraphLink[] = [];
     const allTickets = new Map<string, GraphNode>();
@@ -35,7 +35,7 @@ export class JiraParserService {
         summary: issue.fields.summary,
         status: issue.fields.status.name,
         color: this.getStatusColor(issue.fields.status.name),
-        shape: this.getShapeForTeam((issue.fields[JiraApiService.TEAM_CUSTOM_FIELD] as { name: string })?.name)
+        shape: this.getShapeForTeam(JiraApiService.getTeamName(issue.fields)),
       };
       nodes.push(node);
       allTickets.set(issue.key, node);
@@ -47,17 +47,11 @@ export class JiraParserService {
 
       if (issue.fields.issuelinks) {
         issue.fields.issuelinks.forEach(link => {
-          if (link.type.name === 'Blocks') {
-            const isUnfinished = (issue: JiraTicket) => 
-              (includeDone || (issue.fields.status.name.toLowerCase() !== 'done' && 
-              issue.fields.status.name.toLowerCase() !== "won't fix")) &&
-              issue.fields.issuetype.name !== 'QAlity Test';
-            
-            if (link.outwardIssue && isUnfinished(link.outwardIssue as unknown as JiraTicket)) {
-              const targetIssue = link.outwardIssue;
-              const targetKey = targetIssue.key;
+          if (link.type.name === 'Blocks') {            
+            if (this.shouldCreateAndAddNode(issue, link, 'outwardIssue', formData)) {
+              const targetIssue = link.outwardIssue as unknown as JiraTicket;
 
-              createAndAddNode(targetIssue as unknown as JiraTicket);
+              createAndAddNode(targetIssue);
 
               if (!primaryNodeCreated) {
                 createAndAddNode(issue);
@@ -66,15 +60,14 @@ export class JiraParserService {
               
               links.push({
                 source: issue.key,
-                target: targetKey
+                target: targetIssue.key
               });
             }
 
-            if (link.inwardIssue && isUnfinished(link.inwardIssue as unknown as JiraTicket)) {
-              const sourceIssue = link.inwardIssue;
-              const sourceKey = sourceIssue.key;
+            if (this.shouldCreateAndAddNode(issue, link, 'inwardIssue', formData)) {
+              const sourceIssue = link.inwardIssue as unknown as JiraTicket;
 
-              createAndAddNode(sourceIssue as unknown as JiraTicket);
+              createAndAddNode(sourceIssue);
 
               if (!primaryNodeCreated) {
                 createAndAddNode(issue);
@@ -82,7 +75,7 @@ export class JiraParserService {
               }
               
               links.push({
-                source: sourceKey,
+                source: sourceIssue.key,
                 target: issue.key
               });
             }
@@ -92,6 +85,33 @@ export class JiraParserService {
     });
 
     return { nodes, links };
+  }
+
+  private shouldCreateAndAddNode(issue: JiraTicket, link: IssueLink, direction: 'inwardIssue' | 'outwardIssue', formData: FormData): boolean {
+    const isUnfinished = this.isTicketUnfinished(issue.fields.status.name, issue.fields.issuetype.name, formData);
+
+    if (isUnfinished && link[direction]) {
+      const targetIssue = link[direction];
+      const targetIssueTeamName = JiraApiService.getTeamName(targetIssue.fields)?.replace('Team ', '');
+      const sprintNames = JiraApiService.getSprintNames(targetIssue.fields);
+
+      return this.isTicketUnfinished(targetIssue.fields.status.name, targetIssue.fields.issuetype.name, formData) &&
+        (formData.includeExternal ||
+          (  
+            targetIssue.fields.status.name.toLowerCase() !== 'done' &&
+            !!targetIssueTeamName &&
+            formData.teams.includes(targetIssueTeamName) &&
+            this.atLeastOne(sprintNames, formData.sprints)
+          )
+        );
+    }
+
+    return false;
+  }
+
+  private isTicketUnfinished(status: string, issueType: string, formData: FormData): boolean {
+    const statusLower = status.toLowerCase();
+    return formData.includeDone || (statusLower !== 'done' && statusLower !== "won't fix" && issueType !== 'QAlity Test');
   }
 
   private getShapeForTeam(teamName?: string): NodeShape {
@@ -105,5 +125,10 @@ export class JiraParserService {
       default:
         return NodeShape.Triangle;
     }
+  }
+
+  private atLeastOne(needles: string[] | undefined, haystack: string): boolean {
+    if (!needles || needles.length === 0) return false;
+    return needles.some(needle => haystack.includes(needle));
   }
 }

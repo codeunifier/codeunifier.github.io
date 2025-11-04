@@ -26,6 +26,7 @@ export class FormComponent implements OnInit {
   protected readonly teams = signal(['Armadillo']);
   protected readonly sprints = signal('');
   protected readonly includeDone = signal(false);
+  protected readonly includeExternal = signal(false);
   protected readonly errorMessage = signal('');
 
   protected readonly formValue = computed(() => ({
@@ -35,6 +36,7 @@ export class FormComponent implements OnInit {
     teams: this.teams(),
     sprints: this.sprints(),
     includeDone: this.includeDone(),
+    includeExternal: this.includeExternal(),
   }));
 
   protected readonly formErrors = computed(() => {
@@ -82,6 +84,7 @@ export class FormComponent implements OnInit {
       teams: new FormControl(this.teams()),
       sprints: new FormControl(this.sprints()),
       includeDone: new FormControl(this.includeDone()),
+      includeExternal: new FormControl(this.includeExternal()),
     });
   }
 
