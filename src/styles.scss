@@ -44,6 +44,7 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  color: colors.$PB_smoke;
 }
 
 body {
@@ -59,11 +60,6 @@ html, body {
 
 input, select {
   background-color: colors.$PB_white;
-}
-
-label {
-  color: colors.$PB_smoke;
-  font-weight: 700;
 }
 
 h1 {
@@ -94,3 +90,4 @@ body .mdc-text-field--filled:not(.mdc-text-field--disabled) .mdc-line-ripple::be
 body .mdc-checkbox__background {
   border-color: colors.$PB_smoke;
 }
+

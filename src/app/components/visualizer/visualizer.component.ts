@@ -7,11 +7,12 @@ import { VisualizerService } from '../../services/visualizer.service';
 import { Colors } from '../../constants/colors';
 import { FormComponent } from '../form/form';
 import { BlockerStats, FormData, GraphData, JiraApiResponse } from '../../models';
+import { SimpleStat } from '../simple-stat/simple-stat';
 
 @Component({
   selector: 'app-visualizer',
   standalone: true,
-  imports: [CommonModule, FormComponent, FormsModule],
+  imports: [CommonModule, FormComponent, FormsModule, SimpleStat],
   templateUrl: './visualizer.component.html',
   styleUrl: './visualizer.component.scss'
 })
@@ -78,5 +79,61 @@ export class VisualizerComponent {
         window.open(jiraUrl, '_blank');
       }, this.graphSvg);
     }
+  }
+
+  downloadSvg(): void {
+    if (!this.graphSvg) {
+      return;
+    }
+
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(this.graphSvg.nativeElement);
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'graph.svg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  downloadPng(): void {
+    if (!this.graphSvg) {
+      return;
+    }
+
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(this.graphSvg.nativeElement);
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    const img = new Image();
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      context?.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const pngUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = 'graph.png';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(pngUrl);
+        }
+      }, 'image/png');
+    };
+
+    img.src = url;
   }
 }

@@ -1,0 +1,17 @@
+@use 'font-sizes';
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .stat-value {
+    font-size: font-sizes.$stat-value;
+    font-weight: 600;
+  }
+
+  .stat-label {
+    font-size: font-sizes.$stat-label;
+    font-weight: 600;
+  }
+}
