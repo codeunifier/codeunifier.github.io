@@ -103,7 +103,6 @@ export class JiraParserService {
       case Teams.AI:
         return NodeShape.Square;
       default:
-        console.log(teamName);
         return NodeShape.Triangle;
     }
   }

@@ -17,15 +17,12 @@ export class JiraApiService {
 
     // First, fetch the tickets that match the team and sprint criteria
     const tickets = await this.fetchFilteredTickets(auth, formData);
-    console.log('base tickets', tickets);
 
     // Then, fetch the tickets that are blocking the previously fetched tickets as there may be dependencies outside of the team / board parameters
     const blockingTickets = await this.fetchBlockingTickets(auth, formData, tickets.issues);
-    console.log('blocking tickets', blockingTickets);
 
     // Then, fetch the tickets that are being blocked by the previously fetched tickets as there may be dependencies outside of the team / board parameters
     const blockedTickets = await this.fetchBlockedTickets(auth, formData, tickets.issues);
-    console.log('blocked tickets', blockedTickets);
     
     // Combine both sets of tickets
     const combinedTickets: JiraTicket[] = this.combineTickets(tickets.issues, blockingTickets.issues, blockedTickets.issues);
@@ -103,8 +100,6 @@ export class JiraApiService {
       });
     });
 
-    console.log('Blocking keys:', blockingKeys);
-
     if (blockingKeys.size === 0) {
       return Promise.resolve({ issues: [] });
     }
@@ -141,8 +136,6 @@ export class JiraApiService {
         }
       });
     });
-
-      console.log('Blocked keys:', blockedKeys);
 
     if (blockedKeys.size === 0) {
       return Promise.resolve({ issues: [] });
