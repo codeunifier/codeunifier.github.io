@@ -22,3 +22,12 @@ button {
     cursor: not-allowed;
   }
 }
+
+.mdc-checkbox__background {
+  background-color: colors.$PB_white !important;
+  border-color: colors.$PB_smoke !important;
+
+  .mdc-checkbox__checkmark-path {
+    stroke: colors.$PB_blue;
+  }
+}
