@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Colors } from '../constants/colors';
 import { FormData, GraphData, GraphLink, GraphNode, IssueLink, JiraTicket, NodeShape, Teams } from '../models';
 import { JiraApiService } from './jira-api.service';
+import { link } from 'd3';
 
 @Injectable({
   providedIn: 'root'
@@ -42,6 +43,22 @@ export class JiraParserService {
       return node;
     };
 
+    const createNodeAndLink = (link: IssueLink, primaryNodeCreated: boolean, issue: JiraTicket) => {
+      const targetIssue = link.outwardIssue as unknown as JiraTicket;
+
+      createAndAddNode(targetIssue);
+
+      if (!primaryNodeCreated) {
+        createAndAddNode(issue);
+        primaryNodeCreated = true;
+      }
+      
+      links.push({
+        source: issue.key,
+        target: targetIssue.key
+      });
+    }
+
     issues.forEach(issue => {
       let primaryNodeCreated = false;
 
@@ -49,35 +66,11 @@ export class JiraParserService {
         issue.fields.issuelinks.forEach(link => {
           if (link.type.name === 'Blocks') {            
             if (this.shouldCreateAndAddNode(issue, link, 'outwardIssue', formData)) {
-              const targetIssue = link.outwardIssue as unknown as JiraTicket;
-
-              createAndAddNode(targetIssue);
-
-              if (!primaryNodeCreated) {
-                createAndAddNode(issue);
-                primaryNodeCreated = true;
-              }
-              
-              links.push({
-                source: issue.key,
-                target: targetIssue.key
-              });
+              createNodeAndLink(link, primaryNodeCreated, issue);
             }
 
             if (this.shouldCreateAndAddNode(issue, link, 'inwardIssue', formData)) {
-              const sourceIssue = link.inwardIssue as unknown as JiraTicket;
-
-              createAndAddNode(sourceIssue);
-
-              if (!primaryNodeCreated) {
-                createAndAddNode(issue);
-                primaryNodeCreated = true;
-              }
-              
-              links.push({
-                source: sourceIssue.key,
-                target: issue.key
-              });
+              createNodeAndLink(link, primaryNodeCreated, issue);
             }
           }
         });
