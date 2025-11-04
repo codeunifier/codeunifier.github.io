@@ -6,7 +6,9 @@ import { JiraApiService } from '../../services/jira-api.service';
 import { VisualizerService } from '../../services/visualizer.service';
 import { Colors } from '../../constants/colors';
 import { FormComponent } from '../form/form';
-import { BlockerStats, FormData, GraphData, JiraApiResponse } from '../../models';
+import { BlockerStats, FormData, GraphData, JiraApiResponse, JiraTicket } from '../../models';
+import { NodeOverviewDialog } from './node-overview-dialog/node-overview-dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-visualizer',
@@ -26,7 +28,12 @@ export class VisualizerComponent {
 
   colors = Colors;
 
-  constructor(private jiraParser: JiraParserService, private jiraApi: JiraApiService, private visualizer: VisualizerService) {}
+  constructor(
+    private jiraParser: JiraParserService,
+    private jiraApi: JiraApiService,
+    private visualizer: VisualizerService,
+    private dialog: MatDialog
+  ) {}
 
   async fetchAndVisualize(formData: FormData): Promise<void> {
     try {
@@ -48,7 +55,7 @@ export class VisualizerComponent {
 
       // Use setTimeout to ensure the DOM has updated before visualizing
       setTimeout(() => {
-        this.visualize(formData.projectName);
+        this.visualize();
         this.isLoading.set(false);
       }, 100);
     } catch (error) {
@@ -71,11 +78,20 @@ export class VisualizerComponent {
     });
   }
 
-  private visualize(projectName: string): void {
+  private visualize(): void {
     if (this.graphData) {
       this.visualizer.visualizeGraph(this.graphData, (id: string) => {
-        const jiraUrl = `https://${projectName}.atlassian.net/browse/${id}`;
-        window.open(jiraUrl, '_blank');
+        const ticket = this.graphData!.nodes.find(node => node.id === id)?.ticket;
+
+        // TODO: should be able to pass in the graph svg element and have the modal position itself relative to that
+        const dialogRef = this.dialog.open(NodeOverviewDialog, {
+          data: ticket,
+          hasBackdrop: false,
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+          console.log('The dialog was closed');
+        });
       }, this.graphSvg);
     }
   }

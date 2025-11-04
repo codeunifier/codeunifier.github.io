@@ -35,7 +35,8 @@ export class JiraParserService {
         summary: issue.fields.summary,
         status: issue.fields.status.name,
         color: this.getStatusColor(issue.fields.status.name),
-        shape: this.getShapeForTeam((issue.fields[JiraApiService.TEAM_CUSTOM_FIELD] as { name: string })?.name)
+        shape: this.getShapeForTeam((issue.fields[JiraApiService.TEAM_CUSTOM_FIELD] as { name: string })?.name),
+        ticket: issue
       };
       nodes.push(node);
       allTickets.set(issue.key, node);

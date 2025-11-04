@@ -1,3 +1,4 @@
+import { JiraTicket } from "../jira-ticket.model";
 import { NodeShape } from "./node-shape.enum";
 
 export interface GraphNode {
@@ -11,4 +12,5 @@ export interface GraphNode {
   y?: number;
   fx?: number | null;
   fy?: number | null;
+  ticket?: JiraTicket;
 }

@@ -17,5 +17,6 @@ export interface JiraTicket {
       name: string;
     };
     issuelinks?: IssueLink[];
+    self: string;
   };
 }
