@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Colors } from '../constants/colors';
 import { FormData, GraphData, GraphLink, GraphNode, IssueLink, JiraTicket, NodeShape, Teams } from '../models';
 import { JiraApiService } from './jira-api.service';
-import { link } from 'd3';
 
 @Injectable({
   providedIn: 'root'
@@ -43,19 +42,17 @@ export class JiraParserService {
       return node;
     };
 
-    const createNodeAndLink = (link: IssueLink, primaryNodeCreated: boolean, issue: JiraTicket) => {
-      const targetIssue = link.outwardIssue as unknown as JiraTicket;
-
-      createAndAddNode(targetIssue);
+    const createNodeAndLink = (issue: JiraTicket, primaryNodeCreated: boolean, sourceIssue: JiraTicket) => {
+      createAndAddNode(issue);
 
       if (!primaryNodeCreated) {
-        createAndAddNode(issue);
+        createAndAddNode(sourceIssue);
         primaryNodeCreated = true;
       }
       
       links.push({
-        source: issue.key,
-        target: targetIssue.key
+        source: sourceIssue.key,
+        target: issue.key
       });
     }
 
@@ -66,11 +63,11 @@ export class JiraParserService {
         issue.fields.issuelinks.forEach(link => {
           if (link.type.name === 'Blocks') {            
             if (this.shouldCreateAndAddNode(issue, link, 'outwardIssue', formData)) {
-              createNodeAndLink(link, primaryNodeCreated, issue);
+              createNodeAndLink(link.outwardIssue as JiraTicket, primaryNodeCreated, issue);
             }
 
             if (this.shouldCreateAndAddNode(issue, link, 'inwardIssue', formData)) {
-              createNodeAndLink(link, primaryNodeCreated, issue);
+              createNodeAndLink(link.inwardIssue as JiraTicket, primaryNodeCreated, issue);
             }
           }
         });

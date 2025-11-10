@@ -91,3 +91,6 @@ body .mdc-checkbox__background {
   border-color: colors.$PB_smoke;
 }
 
+body mat-select .mat-mdc-select-value-text .mat-mdc-select-min-line {
+  color: black;
+}
