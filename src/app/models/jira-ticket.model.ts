@@ -2,6 +2,7 @@ import { JiraApiService } from "../services/jira-api.service";
 import { IssueLink } from "./issue-link.model";
 
 export interface JiraTicket {
+  id: string;
   key: string;
   fields: {
     issuetype: {

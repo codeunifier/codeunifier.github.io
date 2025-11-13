@@ -1,0 +1,9 @@
+<div class="ticket-detail-modal">
+    <div class="header">
+        <h3>{{ ticket().key }}</h3>
+        <app-simple-indicator [type]="indicatorTypes.Status" [label]="ticket().fields.status.name" [reverse]="true"></app-simple-indicator>
+    </div>
+    
+    <p><strong>Title:</strong> {{ ticket().fields.summary }}</p>
+    <button (click)="openInJira()">Open in Jira</button>
+</div>

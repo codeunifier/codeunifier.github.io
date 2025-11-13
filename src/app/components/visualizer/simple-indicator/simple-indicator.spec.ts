@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { NodeDialog } from './node-dialog';
+import { SimpleIndicator } from './simple-indicator';
 
-describe('NodeDialog', () => {
-  let component: NodeDialog;
-  let fixture: ComponentFixture<NodeDialog>;
+describe('SimpleIndicator', () => {
+  let component: SimpleIndicator;
+  let fixture: ComponentFixture<SimpleIndicator>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NodeDialog]
+      imports: [SimpleIndicator]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(NodeDialog);
+    fixture = TestBed.createComponent(SimpleIndicator);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

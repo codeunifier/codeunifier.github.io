@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JiraParserService } from '../../services/jira-parser.service';
@@ -6,17 +6,19 @@ import { JiraApiService } from '../../services/jira-api.service';
 import { VisualizerService } from '../../services/visualizer.service';
 import { Colors } from '../../constants/colors';
 import { FormComponent } from '../form/form';
-import { NodeOverviewDialog } from './node-overview-dialog/node-overview-dialog';
-import { MatDialog } from '@angular/material/dialog';
-import { BlockerStats, FormData, GraphData, JiraApiResponse } from '../../models';
+import { BlockerStats, FormData, GraphData, JiraApiResponse, JiraTicket, Teams } from '../../models';
 import { SimpleStat } from '../simple-stat/simple-stat';
+import { Statuses } from '../../constants/statuses';
+import { IndicatorType, SimpleIndicator } from './simple-indicator/simple-indicator';
+import { TicketDetailPanel } from './ticket-detail-panel/ticket-detail-panel';
 
 @Component({
   selector: 'app-visualizer',
   standalone: true,
-  imports: [CommonModule, FormComponent, FormsModule, SimpleStat],
+  imports: [CommonModule, FormComponent, FormsModule, SimpleStat, SimpleIndicator, TicketDetailPanel],
   templateUrl: './visualizer.component.html',
-  styleUrl: './visualizer.component.scss'
+  styleUrls: ['./visualizer.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class VisualizerComponent {
   @ViewChild('graphSvg', { static: false }) graphSvg?: ElementRef<SVGSVGElement>;
@@ -29,15 +31,24 @@ export class VisualizerComponent {
 
   colors = Colors;
 
+  ticketForDetailedView: JiraTicket | null = null;
+
+  indicatorTypes = IndicatorType;
+  statuses = Statuses;
+  teams = Teams;
+
+  submittedProjectName?: string;
+
   constructor(
     private jiraParser: JiraParserService,
     private jiraApi: JiraApiService,
     private visualizer: VisualizerService,
-    private dialog: MatDialog
+    private cdr: ChangeDetectorRef
   ) {}
 
   async fetchAndVisualize(formData: FormData): Promise<void> {
     try {
+      this.submittedProjectName = formData.projectName;
       this.isLoading.set(true);
 
       // Use the proxy endpoint to avoid CORS issues
@@ -84,17 +95,17 @@ export class VisualizerComponent {
       this.visualizer.visualizeGraph(this.graphData, (id: string) => {
         const ticket = this.graphData!.nodes.find(node => node.id === id)?.ticket;
 
-        // TODO: should be able to pass in the graph svg element and have the modal position itself relative to that
-        const dialogRef = this.dialog.open(NodeOverviewDialog, {
-          data: ticket,
-          hasBackdrop: false,
-        });
-
-        dialogRef.afterClosed().subscribe(result => {
-          console.log('The dialog was closed');
-        });
+        if (ticket) {
+          // TODO: should be able to pass in the graph svg element and have the modal position itself relative to that
+          this.showDetailedTicketView(ticket);
+        }
       }, this.graphSvg);
     }
+  }
+
+  private showDetailedTicketView(ticket: JiraTicket): void {
+    this.ticketForDetailedView = ticket;
+    this.cdr.markForCheck();
   }
 
   downloadSvg(): void {

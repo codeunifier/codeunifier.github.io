@@ -12,61 +12,70 @@
   }
 
   @if (hasData()) {
-    <div class="stats">
-      <div class="stats-grid">
-        <app-simple-stat [label]="'Total Tickets'" [value]="stats().total"></app-simple-stat>
-        <app-simple-stat [label]="'Blocking Tickets'" [value]="stats().blocking"></app-simple-stat>
-        <app-simple-stat [label]="'Blocked Tickets'" [value]="stats().blocked"></app-simple-stat>
-        <app-simple-stat [label]="'Independent Tickets'" [value]="stats().independent"></app-simple-stat>
+    <div class="card-section">
+      <div class="stats">
+        <h3>Stats</h3>
+        <div class="stats-grid-content">
+          <div class="stats-grid">
+            <app-simple-stat [label]="'Total Tickets'" [value]="stats().total"></app-simple-stat>
+            <app-simple-stat [label]="'Blocking Tickets'" [value]="stats().blocking"></app-simple-stat>
+            <app-simple-stat [label]="'Blocked Tickets'" [value]="stats().blocked"></app-simple-stat>
+            <app-simple-stat [label]="'Independent Tickets'" [value]="stats().independent"></app-simple-stat>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <h3>Legend</h3>
+        <div class="legend-content">
+          <div class="legend-section">
+            <h4 class="legend-section-header">Statuses</h4>
+            <div class="legend-items">
+              <div class="legend-item">
+                <app-simple-indicator [type]="indicatorTypes.Status" [label]="statuses.Done"></app-simple-indicator>
+              </div>
+              <div class="legend-item">
+                <app-simple-indicator [type]="indicatorTypes.Status" [label]="statuses.InProgress"></app-simple-indicator>
+              </div>
+              <div class="legend-item">
+                <app-simple-indicator [type]="indicatorTypes.Status" [label]="statuses.ToDo"></app-simple-indicator>
+              </div>
+              <div class="legend-item">
+                <app-simple-indicator [type]="indicatorTypes.Status" label="Other"></app-simple-indicator>
+              </div>
+            </div>
+          </div>
+          <div class="legend-section">
+            <h4 class="legend-section-header">Teams</h4>
+            <div class="legend-items">
+              <div class="legend-item">
+                <app-simple-indicator [type]="indicatorTypes.Team" [label]="teams.Armadillo"></app-simple-indicator>
+              </div>
+              <div class="legend-item">
+                <app-simple-indicator [type]="indicatorTypes.Team" [label]="teams.Backpack"></app-simple-indicator>
+              </div>
+              <div class="legend-item">
+                <app-simple-indicator [type]="indicatorTypes.Team" [label]="teams.AI"></app-simple-indicator>
+              </div>
+              <div class="legend-item">
+                <app-simple-indicator [type]="indicatorTypes.Team" label="No Team"></app-simple-indicator>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="graph-container">
       <svg #graphSvg id="graph"></svg>
 
+      @if (ticketForDetailedView && submittedProjectName) {
+        <app-ticket-detail-panel [ticket]="ticketForDetailedView" [projectName]="submittedProjectName"></app-ticket-detail-panel>
+      }
+
       <div class="actions">
         <button (click)="downloadSvg()">Download as SVG</button>
         <button (click)="downloadPng()">Download as PNG</button>
-      </div>
-    </div>
-
-    <div class="legend">
-      <h3>Legend</h3>
-      <div class="legend-items">
-        <div class="legend-item">
-          <div class="legend-circle" [style.background]="colors.Green"></div>
-          <span>Done</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-circle" [style.background]="colors.Peach"></div>
-          <span>In Progress</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-circle" [style.background]="colors.Blue"></div>
-          <span>To Do</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-circle" [style.background]="colors.Gray"></div>
-          <span>Other Status</span>
-        </div>
-      </div>
-      <div class="legend-items">
-        <div class="legend-item">
-          <div class="legend-shape circle"></div>
-          <span>Team Armadillo</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-shape hexagon"></div>
-          <span>Team Backpack</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-shape square"></div>
-          <span>Team AI</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-shape triangle"></div>
-          <span>No Team</span>
-        </div>
       </div>
     </div>
   }

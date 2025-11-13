@@ -7,7 +7,7 @@ import { JiraApiService } from './jira-api.service';
   providedIn: 'root'
 })
 export class JiraParserService {
-  getStatusColor(status: string): string {
+  static getStatusColor(status: string): string {
     const statusLower = status.toLowerCase();
     if (statusLower.includes('done')) {
       return Colors.Green;
@@ -45,8 +45,9 @@ export class JiraParserService {
           label: issue.key,
           summary: issue.fields.summary,
           status: issue.fields.status.name,
-          color: this.getStatusColor(issue.fields.status.name),
+          color: JiraParserService.getStatusColor(issue.fields.status.name),
           shape: this.getShapeForTeam(JiraApiService.getTeamName(issue.fields)),
+          ticket: issue,
           // D3 properties will be added by the force simulation later
         } as GraphNode;
       })

@@ -1,0 +1,9 @@
+<div class="indicator">
+  @if (reverse()) {
+    <div class="label">{{ label() }}</div>
+    <div [class]="'icon ' + iconShape()" [style.background]="color()"></div>
+  } @else {
+    <div [class]="'icon ' + iconShape()" [style.background]="color()"></div>
+    <div class="label">{{ label() }}</div>
+  }
+</div>

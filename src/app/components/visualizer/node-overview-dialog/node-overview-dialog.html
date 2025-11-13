@@ -1,9 +1,0 @@
-<h1 mat-dialog-title>{{ ticket.key }}</h1>
-<mat-dialog-content>
-  <p><strong>Summary:</strong> {{ ticket.fields.summary }}</p>
-  <p><strong>Status:</strong> {{ ticket.fields.status.name }}</p>
-  <p><a [href]="ticket.fields.self">Open In Jira</a></p>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Close</button>
-</mat-dialog-actions>
