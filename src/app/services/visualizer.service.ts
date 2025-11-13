@@ -27,9 +27,15 @@ export class VisualizerService {
     const height = 600;
 
     const svg = d3.select(graphSvg.nativeElement);
+
     svg.selectAll('*').remove();
 
     svg.attr('width', width).attr('height', height);
+
+    svg.insert('rect', ':first-child')
+      .attr('width', '100%')
+      .attr('height', '100%')
+      .attr('fill', 'white');
 
     const g = svg.append('g');
 

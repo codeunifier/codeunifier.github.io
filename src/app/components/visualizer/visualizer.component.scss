@@ -71,6 +71,27 @@
     width: 100%;
     height: 600px;
   }
+
+  .actions {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+
+    button {
+      margin-left: spacing.$standard;
+      visibility: hidden;
+    }
+  }
+
+  &:hover .actions button {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .actions button {
+    opacity: 0;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
 }
 
 .stats {
@@ -85,24 +106,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-}
-
-.stat-item {
-  padding: spacing.$standard;
-  background: #F4F5F7;
-  border-radius: 4px;
-}
-
-.stat-label {
-  font-size: font-sizes.$help-text;
-  color: #6B778C;
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: font-sizes.$header;
-  font-weight: 600;
-  color: #172B4D;
 }
 
 .legend {

@@ -8,24 +8,38 @@ import { JiraApiResponse, JiraTicket } from "../models";
 })
 export class JiraApiService {
   static TEAM_CUSTOM_FIELD = 'customfield_10001';
+  static SPRINT_CUSTOM_FIELD = 'customfield_10008';
 
-  protected readonly FIELDS = 'key,issuetype,summary,status,issuelinks,' + JiraApiService.TEAM_CUSTOM_FIELD;
+  protected readonly FIELDS = 'key,issuetype,summary,status,issuelinks,sprint,' + JiraApiService.TEAM_CUSTOM_FIELD + ',' + JiraApiService.SPRINT_CUSTOM_FIELD;
   protected readonly JIRA_API = '/rest/api/latest/search/jql';
+
+  static getTeamName(fields: any): string | undefined {
+    const teamField = fields[JiraApiService.TEAM_CUSTOM_FIELD];
+    return teamField ? teamField.name : undefined;
+  }
+
+  static getSprintNames(fields: any): string[] {
+    const sprintField = fields[JiraApiService.SPRINT_CUSTOM_FIELD];
+    if (!sprintField || !Array.isArray(sprintField)) {
+      return [];
+    }
+
+    return sprintField.map((sprint: any) => {
+      return sprint.name;
+    }).filter((name: string) => name !== '');
+  }
 
   async getTickets(formData: FormData): Promise<JiraApiResponse> {
     const auth = btoa(`${formData.email}:${formData.apiToken}`);
 
     // First, fetch the tickets that match the team and sprint criteria
     const tickets = await this.fetchFilteredTickets(auth, formData);
-    console.log('base tickets', tickets);
 
     // Then, fetch the tickets that are blocking the previously fetched tickets as there may be dependencies outside of the team / board parameters
     const blockingTickets = await this.fetchBlockingTickets(auth, formData, tickets.issues);
-    console.log('blocking tickets', blockingTickets);
 
     // Then, fetch the tickets that are being blocked by the previously fetched tickets as there may be dependencies outside of the team / board parameters
     const blockedTickets = await this.fetchBlockedTickets(auth, formData, tickets.issues);
-    console.log('blocked tickets', blockedTickets);
     
     // Combine both sets of tickets
     const combinedTickets: JiraTicket[] = this.combineTickets(tickets.issues, blockingTickets.issues, blockedTickets.issues);
@@ -34,34 +48,48 @@ export class JiraApiService {
   }
 
   private combineTickets(tickets: JiraTicket[], blockingTickets: JiraTicket[], blockedTickets: JiraTicket[]): JiraTicket[] {
-    // loop through the "tickets" array and overwrite the linked tickets with those from the blockingTickets and blockedTickets arrays
-    tickets.forEach(ticket => {
-      if (ticket.fields.issuelinks && ticket.fields.issuelinks.length > 0) {
-        for (let i = 0; i < ticket.fields.issuelinks?.length; i++) {
-          const link = ticket.fields.issuelinks[i];
+    // 1. Create a map of all tickets (core, blocking, blocked)
+    const allTicketsMap = new Map<string, JiraTicket>();
 
-          if (link.type.inward === 'is blocked by' && link.type.outward === 'blocks') {
-            if (link.inwardIssue) {
-              const inwardIssue = tickets.find(t => t.key === link.inwardIssue?.key) ?? blockingTickets.find(t => t.key === link.inwardIssue?.key);
-
-              if (inwardIssue) {
-                ticket.fields.issuelinks[i].inwardIssue = inwardIssue;
-              }
-            }
-
-            if (link.outwardIssue) {
-              const outwardIssue = tickets.find(t => t.key === link.outwardIssue?.key) ?? blockedTickets.find(t => t.key === link.outwardIssue?.key);
-
-              if (outwardIssue) {
-                ticket.fields.issuelinks[i].outwardIssue = outwardIssue;
-              }
-            }
-          }
+    // Add all tickets to the map, preferring the core ticket if a duplicate exists
+    [...tickets, ...blockingTickets, ...blockedTickets].forEach(ticket => {
+        // Only add if not already present to prefer the 'tickets' version which has more context on links
+        if (!allTicketsMap.has(ticket.key)) {
+            allTicketsMap.set(ticket.key, ticket);
         }
-      }
     });
 
-    return tickets;
+    // 2. Iterate through the *core* tickets to update their links with full ticket objects
+    tickets.forEach(ticket => {
+        if (ticket.fields.issuelinks && ticket.fields.issuelinks.length > 0) {
+            for (let i = 0; i < ticket.fields.issuelinks?.length; i++) {
+                const link = ticket.fields.issuelinks[i];
+
+                if (link.type.inward === 'is blocked by' && link.type.outward === 'blocks') {
+                    // Update inward (blocking) issue with the full ticket object
+                    if (link.inwardIssue) {
+                        const inwardIssue = allTicketsMap.get(link.inwardIssue.key);
+                        if (inwardIssue) {
+                            ticket.fields.issuelinks[i].inwardIssue = inwardIssue;
+                        }
+                    }
+
+                    // Update outward (blocked) issue with the full ticket object
+                    if (link.outwardIssue) {
+                        const outwardIssue = allTicketsMap.get(link.outwardIssue.key);
+                        if (outwardIssue) {
+                            ticket.fields.issuelinks[i].outwardIssue = outwardIssue;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 3. Return the array of all unique tickets for the parser to use
+    const combinedTickets = Array.from(allTicketsMap.values());
+
+    return combinedTickets;
   }
 
   private async fetchFilteredTickets(auth: string, formData: FormData): Promise<JiraApiResponse> {
@@ -95,15 +123,13 @@ export class JiraApiService {
 
     tickets.forEach(ticket => {
       ticket.fields.issuelinks?.forEach(link => {
-        if (link.type.inward === 'is blocked by' && link.inwardIssue) {
-          if (!existingKeys.has(link.inwardIssue.key)) {
-            blockingKeys.add(link.inwardIssue.key);
+        if (link.type.name === 'Blocks' && link.outwardIssue) {
+          if (!existingKeys.has(link.outwardIssue.key)) {
+            blockingKeys.add(link.outwardIssue.key);
           }
         }
       });
     });
-
-    console.log('Blocking keys:', blockingKeys);
 
     if (blockingKeys.size === 0) {
       return Promise.resolve({ issues: [] });
@@ -134,15 +160,13 @@ export class JiraApiService {
 
     tickets.forEach(ticket => {
       ticket.fields.issuelinks?.forEach(link => {
-        if (link.type.outward === 'blocks' && link.outwardIssue) {
-          if (!existingKeys.has(link.outwardIssue.key)) {
-            blockedKeys.add(link.outwardIssue.key);
+        if (link.type.name === 'Blocks' && link.inwardIssue) {
+          if (!existingKeys.has(link.inwardIssue.key)) {
+            blockedKeys.add(link.inwardIssue.key);
           }
         }
       });
     });
-
-      console.log('Blocked keys:', blockedKeys);
 
     if (blockedKeys.size === 0) {
       return Promise.resolve({ issues: [] });

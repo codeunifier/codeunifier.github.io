@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Colors } from '../constants/colors';
-import { GraphData, GraphLink, GraphNode, JiraTicket, NodeShape, Teams } from '../models';
+import { FormData, GraphData, GraphLink, GraphNode, IssueLink, JiraTicket, NodeShape, Teams } from '../models';
 import { JiraApiService } from './jira-api.service';
 
 @Injectable({
@@ -19,80 +19,110 @@ export class JiraParserService {
     return Colors.Gray;
   }
 
-  processTicketsFromJson(issues: JiraTicket[], includeDone: boolean): GraphData {
-    const nodes: GraphNode[] = [];
-    const links: GraphLink[] = [];
-    const allTickets = new Map<string, GraphNode>();
+  processTicketsFromJson(issues: JiraTicket[], formData: FormData): GraphData {
+    // 1. Storage for links and a Set to track only tickets that are part of a chain
+    const finalLinks: GraphLink[] = [];
+    
+    // Map to quickly look up the full JiraTicket object by its key
+    const issueMap = new Map<string, JiraTicket>();
+    issues.forEach(issue => issueMap.set(issue.key, issue));
 
-    const createAndAddNode = (issue: JiraTicket) => {
-      if (allTickets.has(issue.key)) {
-        return allTickets.get(issue.key)!;
-      }
+    // 2. Iterate through all issues to build the links array and the Set of chained keys
+    const chainedTicketKeys = this.buildTicketChains(issues, formData, finalLinks);
 
-      const node: GraphNode = {
-        id: issue.key,
-        label: issue.key,
-        summary: issue.fields.summary,
-        status: issue.fields.status.name,
-        color: this.getStatusColor(issue.fields.status.name),
-        shape: this.getShapeForTeam((issue.fields[JiraApiService.TEAM_CUSTOM_FIELD] as { name: string })?.name),
-        ticket: issue
-      };
-      nodes.push(node);
-      allTickets.set(issue.key, node);
-      return node;
-    };
+    // 3. Create the final nodes only for tickets that are part of blocker chains
+    const finalNodes: GraphNode[] = Array.from(chainedTicketKeys)
+      .map(key => {
+        const issue = issueMap.get(key);
+        if (!issue) {
+          // This case should ideally not happen if data is well-formed
+          console.warn(`Issue key ${key} found in chain but not in initial issue list.`);
+          return null;
+        }
+
+        return {
+          id: issue.key,
+          label: issue.key,
+          summary: issue.fields.summary,
+          status: issue.fields.status.name,
+          color: this.getStatusColor(issue.fields.status.name),
+          shape: this.getShapeForTeam(JiraApiService.getTeamName(issue.fields)),
+          // D3 properties will be added by the force simulation later
+        } as GraphNode;
+      })
+      .filter((node): node is GraphNode => node !== null); // Filter out any nulls
+
+    return { nodes: finalNodes, links: finalLinks };
+  }
+
+  private buildTicketChains(issues: Array<JiraTicket>, formData: FormData, finalLinks: Array<GraphLink>): Set<string> {
+    const chainedTicketKeys = new Set<string>();
+    
+    // NEW: Create a set of all available keys for fast lookup
+    const allFetchedKeys = new Set(issues.map(i => i.key)); // <-- This is the key change
 
     issues.forEach(issue => {
-      let primaryNodeCreated = false;
-
       if (issue.fields.issuelinks) {
         issue.fields.issuelinks.forEach(link => {
           if (link.type.name === 'Blocks') {
-            const isUnfinished = (issue: JiraTicket) => 
-              (includeDone || (issue.fields.status.name.toLowerCase() !== 'done' && 
-              issue.fields.status.name.toLowerCase() !== "won't fix")) &&
-              issue.fields.issuetype.name !== 'QAlity Test';
-            
-            if (link.outwardIssue && isUnfinished(link.outwardIssue as unknown as JiraTicket)) {
-              const targetIssue = link.outwardIssue;
-              const targetKey = targetIssue.key;
-
-              createAndAddNode(targetIssue as unknown as JiraTicket);
-
-              if (!primaryNodeCreated) {
-                createAndAddNode(issue);
-                primaryNodeCreated = true;
-              }
+            // --- OUTWARD LINK: issue BLOCKS outwardIssue (issue -> outwardIssue) ---
+            if (link.outwardIssue && this.shouldCreateLink(issue, link, 'outwardIssue', formData)) {
+              const targetTicket = link.outwardIssue as JiraTicket;
               
-              links.push({
-                source: issue.key,
-                target: targetKey
-              });
+              // Only create the link if the target was actually fetched.
+              if (allFetchedKeys.has(targetTicket.key)) {
+                  // Add link and mark both source and target as chained
+                  finalLinks.push({ source: issue.key, target: targetTicket.key });
+                  chainedTicketKeys.add(issue.key);
+                  chainedTicketKeys.add(targetTicket.key);
+              }
             }
 
-            if (link.inwardIssue && isUnfinished(link.inwardIssue as unknown as JiraTicket)) {
-              const sourceIssue = link.inwardIssue;
-              const sourceKey = sourceIssue.key;
+            // --- INWARD LINK: inwardIssue BLOCKS issue (inwardIssue -> issue) ---
+            if (link.inwardIssue && this.shouldCreateLink(issue, link, 'inwardIssue', formData)) {
+              const sourceTicket = link.inwardIssue as JiraTicket;
 
-              createAndAddNode(sourceIssue as unknown as JiraTicket);
-
-              if (!primaryNodeCreated) {
-                createAndAddNode(issue);
-                primaryNodeCreated = true;
+              // Only create the link if the source was actually fetched.
+              if (allFetchedKeys.has(sourceTicket.key)) {
+                  // Add link and mark both source and target as chained
+                  finalLinks.push({ source: sourceTicket.key, target: issue.key });
+                  chainedTicketKeys.add(sourceTicket.key);
+                  chainedTicketKeys.add(issue.key);
               }
-              
-              links.push({
-                source: sourceKey,
-                target: issue.key
-              });
             }
           }
         });
       }
     });
 
-    return { nodes, links };
+    return chainedTicketKeys;
+  }
+
+  private shouldCreateLink(issue: JiraTicket, link: IssueLink, direction: 'inwardIssue' | 'outwardIssue', formData: FormData): boolean {
+    const isUnfinished = this.isTicketUnfinished(issue.fields.status.name, issue.fields.issuetype.name, formData);
+
+    if (isUnfinished && link[direction]) {
+      const targetIssue = link[direction];
+      const targetIssueTeamName = JiraApiService.getTeamName(targetIssue.fields)?.replace('Team ', '');
+      const sprintNames = JiraApiService.getSprintNames(targetIssue.fields);
+
+      return this.isTicketUnfinished(targetIssue.fields.status.name, targetIssue.fields.issuetype.name, formData) &&
+        (formData.includeExternal ||
+          (  
+            targetIssue.fields.status.name.toLowerCase() !== 'done' &&
+            !!targetIssueTeamName &&
+            formData.teams.includes(targetIssueTeamName) &&
+            this.atLeastOne(sprintNames, formData.sprints)
+          )
+        );
+    }
+
+    return false;
+  }
+
+  private isTicketUnfinished(status: string, issueType: string, formData: FormData): boolean {
+    const statusLower = status.toLowerCase();
+    return formData.includeDone || (statusLower !== 'done' && statusLower !== "won't fix" && issueType !== 'QAlity Test');
   }
 
   private getShapeForTeam(teamName?: string): NodeShape {
@@ -104,8 +134,12 @@ export class JiraParserService {
       case Teams.AI:
         return NodeShape.Square;
       default:
-        console.log(teamName);
         return NodeShape.Triangle;
     }
+  }
+
+  private atLeastOne(needles: string[] | undefined, haystack: string): boolean {
+    if (!needles || needles.length === 0) return false;
+    return needles.some(needle => haystack.includes(needle));
   }
 }

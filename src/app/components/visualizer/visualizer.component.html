@@ -14,27 +14,20 @@
   @if (hasData()) {
     <div class="stats">
       <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-label">Total Tickets</div>
-          <div class="stat-value">{{ stats().total }}</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Blocking Tickets</div>
-          <div class="stat-value">{{ stats().blocking }}</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Blocked Tickets</div>
-          <div class="stat-value">{{ stats().blocked }}</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Independent Tickets</div>
-          <div class="stat-value">{{ stats().independent }}</div>
-        </div>
+        <app-simple-stat [label]="'Total Tickets'" [value]="stats().total"></app-simple-stat>
+        <app-simple-stat [label]="'Blocking Tickets'" [value]="stats().blocking"></app-simple-stat>
+        <app-simple-stat [label]="'Blocked Tickets'" [value]="stats().blocked"></app-simple-stat>
+        <app-simple-stat [label]="'Independent Tickets'" [value]="stats().independent"></app-simple-stat>
       </div>
     </div>
 
     <div class="graph-container">
       <svg #graphSvg id="graph"></svg>
+
+      <div class="actions">
+        <button (click)="downloadSvg()">Download as SVG</button>
+        <button (click)="downloadPng()">Download as PNG</button>
+      </div>
     </div>
 
     <div class="legend">
