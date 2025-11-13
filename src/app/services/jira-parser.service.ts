@@ -57,6 +57,9 @@ export class JiraParserService {
 
   private buildTicketChains(issues: Array<JiraTicket>, formData: FormData, finalLinks: Array<GraphLink>): Set<string> {
     const chainedTicketKeys = new Set<string>();
+    
+    // NEW: Create a set of all available keys for fast lookup
+    const allFetchedKeys = new Set(issues.map(i => i.key)); // <-- This is the key change
 
     issues.forEach(issue => {
       if (issue.fields.issuelinks) {
@@ -66,20 +69,26 @@ export class JiraParserService {
             if (link.outwardIssue && this.shouldCreateLink(issue, link, 'outwardIssue', formData)) {
               const targetTicket = link.outwardIssue as JiraTicket;
               
-              // Add link and mark both source and target as chained
-              finalLinks.push({ source: issue.key, target: targetTicket.key });
-              chainedTicketKeys.add(issue.key);
-              chainedTicketKeys.add(targetTicket.key);
+              // Only create the link if the target was actually fetched.
+              if (allFetchedKeys.has(targetTicket.key)) {
+                  // Add link and mark both source and target as chained
+                  finalLinks.push({ source: issue.key, target: targetTicket.key });
+                  chainedTicketKeys.add(issue.key);
+                  chainedTicketKeys.add(targetTicket.key);
+              }
             }
 
             // --- INWARD LINK: inwardIssue BLOCKS issue (inwardIssue -> issue) ---
             if (link.inwardIssue && this.shouldCreateLink(issue, link, 'inwardIssue', formData)) {
               const sourceTicket = link.inwardIssue as JiraTicket;
 
-              // Add link and mark both source and target as chained
-              finalLinks.push({ source: sourceTicket.key, target: issue.key });
-              chainedTicketKeys.add(sourceTicket.key);
-              chainedTicketKeys.add(issue.key);
+              // Only create the link if the source was actually fetched.
+              if (allFetchedKeys.has(sourceTicket.key)) {
+                  // Add link and mark both source and target as chained
+                  finalLinks.push({ source: sourceTicket.key, target: issue.key });
+                  chainedTicketKeys.add(sourceTicket.key);
+                  chainedTicketKeys.add(issue.key);
+              }
             }
           }
         });

@@ -48,34 +48,48 @@ export class JiraApiService {
   }
 
   private combineTickets(tickets: JiraTicket[], blockingTickets: JiraTicket[], blockedTickets: JiraTicket[]): JiraTicket[] {
-    // loop through the "tickets" array and overwrite the linked tickets with those from the blockingTickets and blockedTickets arrays
-    tickets.forEach(ticket => {
-      if (ticket.fields.issuelinks && ticket.fields.issuelinks.length > 0) {
-        for (let i = 0; i < ticket.fields.issuelinks?.length; i++) {
-          const link = ticket.fields.issuelinks[i];
+    // 1. Create a map of all tickets (core, blocking, blocked)
+    const allTicketsMap = new Map<string, JiraTicket>();
 
-          if (link.type.inward === 'is blocked by' && link.type.outward === 'blocks') {
-            if (link.inwardIssue) {
-              const inwardIssue = tickets.find(t => t.key === link.inwardIssue?.key) ?? blockingTickets.find(t => t.key === link.inwardIssue?.key);
-
-              if (inwardIssue) {
-                ticket.fields.issuelinks[i].inwardIssue = inwardIssue;
-              }
-            }
-
-            if (link.outwardIssue) {
-              const outwardIssue = tickets.find(t => t.key === link.outwardIssue?.key) ?? blockedTickets.find(t => t.key === link.outwardIssue?.key);
-
-              if (outwardIssue) {
-                ticket.fields.issuelinks[i].outwardIssue = outwardIssue;
-              }
-            }
-          }
+    // Add all tickets to the map, preferring the core ticket if a duplicate exists
+    [...tickets, ...blockingTickets, ...blockedTickets].forEach(ticket => {
+        // Only add if not already present to prefer the 'tickets' version which has more context on links
+        if (!allTicketsMap.has(ticket.key)) {
+            allTicketsMap.set(ticket.key, ticket);
         }
-      }
     });
 
-    return tickets;
+    // 2. Iterate through the *core* tickets to update their links with full ticket objects
+    tickets.forEach(ticket => {
+        if (ticket.fields.issuelinks && ticket.fields.issuelinks.length > 0) {
+            for (let i = 0; i < ticket.fields.issuelinks?.length; i++) {
+                const link = ticket.fields.issuelinks[i];
+
+                if (link.type.inward === 'is blocked by' && link.type.outward === 'blocks') {
+                    // Update inward (blocking) issue with the full ticket object
+                    if (link.inwardIssue) {
+                        const inwardIssue = allTicketsMap.get(link.inwardIssue.key);
+                        if (inwardIssue) {
+                            ticket.fields.issuelinks[i].inwardIssue = inwardIssue;
+                        }
+                    }
+
+                    // Update outward (blocked) issue with the full ticket object
+                    if (link.outwardIssue) {
+                        const outwardIssue = allTicketsMap.get(link.outwardIssue.key);
+                        if (outwardIssue) {
+                            ticket.fields.issuelinks[i].outwardIssue = outwardIssue;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 3. Return the array of all unique tickets for the parser to use
+    const combinedTickets = Array.from(allTicketsMap.values());
+
+    return combinedTickets;
   }
 
   private async fetchFilteredTickets(auth: string, formData: FormData): Promise<JiraApiResponse> {
@@ -109,9 +123,9 @@ export class JiraApiService {
 
     tickets.forEach(ticket => {
       ticket.fields.issuelinks?.forEach(link => {
-        if (link.type.inward === 'is blocked by' && link.inwardIssue) {
-          if (!existingKeys.has(link.inwardIssue.key)) {
-            blockingKeys.add(link.inwardIssue.key);
+        if (link.type.name === 'Blocks' && link.outwardIssue) {
+          if (!existingKeys.has(link.outwardIssue.key)) {
+            blockingKeys.add(link.outwardIssue.key);
           }
         }
       });
@@ -146,9 +160,9 @@ export class JiraApiService {
 
     tickets.forEach(ticket => {
       ticket.fields.issuelinks?.forEach(link => {
-        if (link.type.outward === 'blocks' && link.outwardIssue) {
-          if (!existingKeys.has(link.outwardIssue.key)) {
-            blockedKeys.add(link.outwardIssue.key);
+        if (link.type.name === 'Blocks' && link.inwardIssue) {
+          if (!existingKeys.has(link.inwardIssue.key)) {
+            blockedKeys.add(link.inwardIssue.key);
           }
         }
       });
