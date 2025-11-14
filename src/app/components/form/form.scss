@@ -1,11 +1,12 @@
 @use 'spacing';
 @use 'font-sizes';
 @use 'colors';
+@use 'screen-sizes';
 
 .controls-group {
-    display: flex;
-    justify-content: space-between;
-    gap: spacing.$large;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
 }
 
 .form-group {
@@ -48,4 +49,11 @@
 
 #remember-token {
   min-width: 140px;
+}
+
+@media screen and (min-width: screen-sizes.$min-desktop) {
+  .controls-group {
+    flex-direction: row;
+    gap: spacing.$large;
+  }
 }

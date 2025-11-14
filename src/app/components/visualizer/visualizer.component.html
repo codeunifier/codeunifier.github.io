@@ -13,18 +13,6 @@
 
   @if (hasData()) {
     <div class="card-section">
-      <div class="stats">
-        <h3>Stats</h3>
-        <div class="stats-grid-content">
-          <div class="stats-grid">
-            <app-simple-stat [label]="'Total Tickets'" [value]="stats().total"></app-simple-stat>
-            <app-simple-stat [label]="'Blocking Tickets'" [value]="stats().blocking"></app-simple-stat>
-            <app-simple-stat [label]="'Blocked Tickets'" [value]="stats().blocked"></app-simple-stat>
-            <app-simple-stat [label]="'Independent Tickets'" [value]="stats().independent"></app-simple-stat>
-          </div>
-        </div>
-      </div>
-
       <div class="legend">
         <h3>Legend</h3>
         <div class="legend-content">
@@ -64,18 +52,30 @@
           </div>
         </div>
       </div>
+
+      <div class="graph-container">
+        <svg #graphSvg id="graph"></svg>
+
+        @if (ticketForDetailedView && submittedProjectName) {
+          <app-ticket-detail-panel [ticket]="ticketForDetailedView" [projectName]="submittedProjectName"></app-ticket-detail-panel>
+        }
+
+        <div class="actions">
+          <button (click)="downloadSvg()">Download as SVG</button>
+          <button (click)="downloadPng()">Download as PNG</button>
+        </div>
+      </div>
     </div>
 
-    <div class="graph-container">
-      <svg #graphSvg id="graph"></svg>
-
-      @if (ticketForDetailedView && submittedProjectName) {
-        <app-ticket-detail-panel [ticket]="ticketForDetailedView" [projectName]="submittedProjectName"></app-ticket-detail-panel>
-      }
-
-      <div class="actions">
-        <button (click)="downloadSvg()">Download as SVG</button>
-        <button (click)="downloadPng()">Download as PNG</button>
+    <div class="stats">
+      <h3>Stats</h3>
+      <div class="stats-grid-content">
+        <div class="stats-grid">
+          <app-simple-stat [label]="'Total Tickets'" [value]="stats().total"></app-simple-stat>
+          <app-simple-stat [label]="'Blocking Tickets'" [value]="stats().blocking"></app-simple-stat>
+          <app-simple-stat [label]="'Blocked Tickets'" [value]="stats().blocked"></app-simple-stat>
+          <app-simple-stat [label]="'Independent Tickets'" [value]="stats().independent"></app-simple-stat>
+        </div>
       </div>
     </div>
   }

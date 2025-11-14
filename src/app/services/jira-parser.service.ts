@@ -127,7 +127,7 @@ export class JiraParserService {
   }
 
   private getShapeForTeam(teamName?: string): NodeShape {
-    switch (teamName) {
+    switch (teamName?.replace('Team ', '')) {
       case Teams.Backpack:
         return NodeShape.Hexagon;
       case Teams.Armadillo:

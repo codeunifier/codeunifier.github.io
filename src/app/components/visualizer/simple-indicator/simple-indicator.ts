@@ -20,6 +20,14 @@ export class SimpleIndicator {
   label = input.required<string>();
   reverse = input<boolean>(false);
 
+  normalizedLabel = computed(() => {
+    const label = this.label();
+    return label
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  });
+
   color = computed(() => {
     const type = this.type();
     const label = this.label();
@@ -28,6 +36,7 @@ export class SimpleIndicator {
       case IndicatorType.Status:
         switch (label) {
           case 'Done':
+          case 'DONE':
             return Colors.Green;
           case 'In Progress':
             return Colors.Peach;
