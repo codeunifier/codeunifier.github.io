@@ -99,6 +99,9 @@ export class VisualizerComponent {
           // TODO: should be able to pass in the graph svg element and have the modal position itself relative to that
           this.showDetailedTicketView(ticket);
         }
+      }, () => {
+        this.ticketForDetailedView = null;
+        this.cdr.markForCheck();
       }, this.graphSvg);
     }
   }

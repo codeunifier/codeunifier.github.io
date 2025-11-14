@@ -1,11 +1,13 @@
 @use 'spacing';
 @use 'colors';
 
+$modal-size: 250px;
+
 .ticket-detail-modal {
   position: absolute;
   right: spacing.$small;
   top: spacing.$small;
-  max-width: 25%;
+  max-width: $modal-size;
   background-color: colors.$PB_white;
 
   padding: spacing.$standard spacing.$large spacing.$large spacing.$large;

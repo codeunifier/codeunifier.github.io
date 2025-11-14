@@ -16,7 +16,7 @@ export class VisualizerService {
   // The size of each node
   nodeSize = 35;
 
-  visualizeGraph(data: GraphData, onClick: (id: string) => void, graphSvg?: ElementRef<SVGSVGElement>): void {
+  visualizeGraph(data: GraphData, onNodeClick: (id: string) => void, onGraphClick: () => void, graphSvg?: ElementRef<SVGSVGElement>): void {
     if (!graphSvg || !graphSvg.nativeElement) {
       console.error('Graph SVG element not found');
       return;
@@ -35,7 +35,11 @@ export class VisualizerService {
     svg.insert('rect', ':first-child')
       .attr('width', '100%')
       .attr('height', '100%')
-      .attr('fill', 'white');
+      .attr('fill', 'white')
+      .on('click', (event: any, d: any) => {
+        event.stopPropagation();
+        onGraphClick();
+      });;
 
     const g = svg.append('g');
 
@@ -81,17 +85,17 @@ export class VisualizerService {
 
       switch (shape) {
         case 'hexagon':
-          this.appendHexagon(gElement, d, onClick);
+          this.appendHexagon(gElement, d, onNodeClick);
           break;
         case 'triangle':
-          this.appendTriangle(gElement, d, onClick);
+          this.appendTriangle(gElement, d, onNodeClick);
           break;
         case 'circle':
-          this.appendCircle(gElement, d, onClick);
+          this.appendCircle(gElement, d, onNodeClick);
           break;
         case 'square':
         default:
-          this.appendSquare(gElement, d, onClick);
+          this.appendSquare(gElement, d, onNodeClick);
           break;
       }
     });
