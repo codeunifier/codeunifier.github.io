@@ -11,11 +11,12 @@ import { SimpleStat } from '../simple-stat/simple-stat';
 import { Statuses } from '../../constants/statuses';
 import { IndicatorType, SimpleIndicator } from './simple-indicator/simple-indicator';
 import { TicketDetailPanel } from './ticket-detail-panel/ticket-detail-panel';
+import { DragHandle } from '../drag-handle/drag-handle';
 
 @Component({
   selector: 'app-visualizer',
   standalone: true,
-  imports: [CommonModule, FormComponent, FormsModule, SimpleStat, SimpleIndicator, TicketDetailPanel],
+  imports: [CommonModule, DragHandle, FormComponent, FormsModule, SimpleStat, SimpleIndicator, TicketDetailPanel],
   templateUrl: './visualizer.component.html',
   styleUrls: ['./visualizer.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -40,6 +41,8 @@ export class VisualizerComponent {
   teams = Teams;
 
   submittedProjectName?: string;
+
+  graphHeight: number = 600;
 
   constructor(
     private jiraParser: JiraParserService,
@@ -118,8 +121,23 @@ export class VisualizerComponent {
       return;
     }
 
+    // Temporarily set width and height to ensure proper export
+    const originalWidth = this.graphSvg.nativeElement.getAttribute('width');
+    const originalHeight = this.graphSvg.nativeElement.getAttribute('height');
+
+    this.graphSvg.nativeElement.setAttribute('width', '100%');
+    this.graphSvg.nativeElement.setAttribute('height', this.graphHeight.toString());
+
     const serializer = new XMLSerializer();
     const svgString = serializer.serializeToString(this.graphSvg.nativeElement);
+
+    if (originalWidth) {
+      this.graphSvg.nativeElement.setAttribute('width', originalWidth);
+    }
+    if (originalHeight) {
+      this.graphSvg.nativeElement.setAttribute('height', originalHeight);
+    }
+
     const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
@@ -167,5 +185,10 @@ export class VisualizerComponent {
     };
 
     img.src = url;
+  }
+
+  onResizeGraph(newHeight: number): void {
+    this.graphHeight = newHeight;
+    this.cdr.markForCheck();
   }
 }

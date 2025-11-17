@@ -56,7 +56,7 @@
         </div>
       </div>
 
-      <div class="graph-container">
+      <div class="graph-container" [style.height.px]="graphHeight">
         <svg #graphSvg id="graph"></svg>
 
         @if (ticketForDetailedView && submittedProjectName) {
@@ -66,6 +66,10 @@
         <div class="actions">
           <button (click)="downloadSvg()">Download as SVG</button>
           <button (click)="downloadPng()">Download as PNG</button>
+        </div>
+
+        <div class="drag-grip">
+          <app-drag-handle [height]="graphHeight" (resize)="onResizeGraph($event)"></app-drag-handle>
         </div>
       </div>
     </div>
