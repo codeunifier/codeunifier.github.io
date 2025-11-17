@@ -170,6 +170,12 @@ $graph-size: 515px;
   }
 }
 
+.error-message {
+  margin-top: spacing.$standard;
+  color: red;
+  font-size: font-sizes.$standard;
+}
+
 @media screen and (min-width: screen-sizes.$min-desktop) {
   .card-section {
     flex-direction: row;

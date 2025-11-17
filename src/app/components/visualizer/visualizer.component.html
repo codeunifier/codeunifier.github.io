@@ -2,6 +2,9 @@
   <div class="controls">
     <h1>Jira Blocker Chain Visualizer</h1>
     <app-form [disableSubmit]="isLoading()" (formSubmit)="fetchAndVisualize($event)"></app-form>
+    @if (errorMessage()) {
+      <div class="error-message">{{ errorMessage() }}</div>
+    }
   </div>
 
   @if (isLoading()) {

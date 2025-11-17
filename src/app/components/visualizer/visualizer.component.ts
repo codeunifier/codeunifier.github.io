@@ -27,6 +27,8 @@ export class VisualizerComponent {
   protected readonly stats = signal<BlockerStats>({ total: 0, blocking: 0, blocked: 0, independent: 0 });
   protected readonly hasData = signal(false);
 
+  protected readonly errorMessage = signal<string | null>(null);
+
   private graphData: GraphData | null = null;
 
   colors = Colors;
@@ -55,7 +57,7 @@ export class VisualizerComponent {
       const data: JiraApiResponse = await this.jiraApi.getTickets(formData);
 
       if (!data.issues || data.issues.length === 0) {
-        // this.errorMessage.set('No tickets found for the specified team and sprint(s)');
+        this.errorMessage.set('No tickets found for the specified team(s) and sprint(s). Double check that the API token is active and correct.');
         this.isLoading.set(false);
         return;
       }
@@ -72,7 +74,7 @@ export class VisualizerComponent {
       }, 100);
     } catch (error) {
       console.error('Error:', error);
-      // this.errorMessage.set(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.errorMessage.set(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       this.isLoading.set(false);
     }
   }
