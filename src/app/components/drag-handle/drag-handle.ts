@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -6,7 +6,7 @@ import { faGrip } from '@fortawesome/free-solid-svg-icons/faGrip';
 
 @Component({
   selector: 'app-drag-handle',
-  imports: [CommonModule, FontAwesomeModule],
+  imports: [FontAwesomeModule],
   standalone: true,
   templateUrl: './drag-handle.html',
   styleUrls: ['./drag-handle.scss'],
