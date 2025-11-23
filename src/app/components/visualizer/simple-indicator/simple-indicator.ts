@@ -1,7 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { Colors } from '../../../constants/colors';
 import { Teams } from '../../../models';
-import { CommonModule } from '@angular/common';
 
 export enum IndicatorType {
   Status = 'status',
@@ -11,7 +10,7 @@ export enum IndicatorType {
 @Component({
   selector: 'app-simple-indicator',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './simple-indicator.html',
   styleUrl: './simple-indicator.scss'
 })

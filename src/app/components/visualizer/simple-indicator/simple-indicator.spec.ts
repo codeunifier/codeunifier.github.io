@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SimpleIndicator } from './simple-indicator';
+import { IndicatorType, SimpleIndicator } from './simple-indicator';
 
 describe('SimpleIndicator', () => {
   let component: SimpleIndicator;
@@ -13,6 +13,9 @@ describe('SimpleIndicator', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(SimpleIndicator);
+    const compRef = fixture.componentRef;
+    compRef.setInput('type', IndicatorType.Status);
+    compRef.setInput('label', 'Done');
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,6 +1,6 @@
 import { Component, computed, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, FormGroup, FormsModule } from '@angular/forms';
 import { FormData } from '../../models';
 import { MatSelectModule } from '@angular/material/select';
@@ -11,7 +11,7 @@ import { LocalData } from '../../models/local-data.model';
 
 @Component({
   selector: 'app-form',
-  imports: [CommonModule, FormsModule, MatCheckboxModule, MatInputModule, MatSelectModule],
+  imports: [FormsModule, MatCheckboxModule, MatInputModule, MatSelectModule],
   templateUrl: './form.html',
   styleUrls: ['./form.scss'],
   standalone: true

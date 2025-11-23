@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { JiraParserService } from '../../services/jira-parser.service';
 import { JiraApiService } from '../../services/jira-api.service';
@@ -16,7 +16,7 @@ import { DragHandle } from '../drag-handle/drag-handle';
 @Component({
   selector: 'app-visualizer',
   standalone: true,
-  imports: [CommonModule, DragHandle, FormComponent, FormsModule, SimpleStat, SimpleIndicator, TicketDetailPanel],
+  imports: [DragHandle, FormComponent, FormsModule, SimpleStat, SimpleIndicator, TicketDetailPanel],
   templateUrl: './visualizer.component.html',
   styleUrls: ['./visualizer.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
