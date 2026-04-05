@@ -209,7 +209,7 @@ export class VisualizerService {
   }
 
   private dragstarted(event: any, d: any, simulation: any): void {
-    if (!event.active) simulation.alphaTarget(0.01).restart();
+    if (!event.active) simulation.alphaTarget(0.03).restart();
     d.fx = d.x;
     d.fy = d.y;
   }

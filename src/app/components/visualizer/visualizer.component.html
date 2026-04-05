@@ -1,23 +1,16 @@
 <div class="container">
   <div class="controls">
     <h1>Jira Blocker Chain Visualizer</h1>
-    <app-form [disableSubmit]="isLoading()" (formSubmit)="fetchAndVisualize($event)"></app-form>
+    <app-form [isLoading]="isLoading()" [disableSubmit]="isLoading()" (formSubmit)="fetchAndVisualize($event)"></app-form>
     @if (errorMessage()) {
       <div class="error-message">{{ errorMessage() }}</div>
     }
   </div>
 
-  @if (isLoading()) {
-    <div class="loading">
-      <div class="spinner"></div>
-      <div>Fetching tickets from Jira...</div>
-    </div>
-  }
-
   @if (hasData()) {
     <div class="card-section">
       <div class="legend">
-        <h3>Legend</h3>
+        <h2>Legend</h2>
         <div class="legend-content">
           <div class="legend-section">
             <h4 class="legend-section-header">Statuses</h4>
@@ -75,7 +68,7 @@
     </div>
 
     <div class="stats">
-      <h3>Stats</h3>
+      <h2>Stats</h2>
       <div class="stats-grid-content">
         <div class="stats-grid">
           <app-simple-stat [label]="'Total Tickets'" [value]="stats().total"></app-simple-stat>

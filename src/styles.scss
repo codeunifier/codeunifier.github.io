@@ -45,10 +45,10 @@ body {
   padding: 0;
   box-sizing: border-box;
   color: colors.$PB_smoke;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: colors.$PB_grey_light;
   margin: 0;
   padding: 0;
@@ -93,4 +93,8 @@ body .mdc-checkbox__background {
 
 body mat-select .mat-mdc-select-value-text .mat-mdc-select-min-line {
   color: black;
+}
+
+h2 {
+  font-size: font-sizes.$header-2;
 }

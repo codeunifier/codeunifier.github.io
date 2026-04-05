@@ -41,25 +41,6 @@ $graph-size: 515px;
   margin-bottom: spacing.$large;
 }
 
-.spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #0052CC;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto spacing.$standard;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 .card-section {
   display: flex;
   flex-direction: column;
@@ -141,7 +122,7 @@ $graph-size: 515px;
   min-width: 175px;
   margin-bottom: spacing.$large;
 
-  h3 {
+  h2 {
     margin-bottom: spacing.$standard;
   }
 
