@@ -48,8 +48,8 @@ export class VisualizerComponent {
   constructor(
     private jiraParser: JiraParserService,
     private jiraApi: JiraApiService,
-    // private visualizer: VisualizerService,
-    private visualizer: StructuredVisualizerService,
+    private visualizer: VisualizerService,
+    // private visualizer: StructuredVisualizerService,
     private cdr: ChangeDetectorRef
   ) {}
 
