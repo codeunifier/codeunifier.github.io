@@ -146,4 +146,86 @@ describe('FormComponent', () => {
       expect(completeSpy).toHaveBeenCalled();
     });
   });
+
+  describe('query params', () => {
+    it('should call onSubmit when teams and sprints are provided in query params', () => {
+      const paramsMap = new Map([
+        ['teams', 'Team1,Team2'],
+        ['sprints', 'Sprint1'],
+      ]);
+      const mockQueryParamMap = {
+        get: (key: string) => paramsMap.get(key),
+      };
+      activatedRouteMock.queryParamMap = of(mockQueryParamMap);
+
+      const submitSpy = spyOn(component, 'onSubmit');
+      fixture.detectChanges();
+
+      expect(submitSpy).toHaveBeenCalled();
+    });
+
+    it('should update teams signal from query params', () => {
+      const paramsMap = new Map([
+        ['teams', 'Team1,Team2'],
+        ['sprints', 'Sprint1'],
+      ]);
+      const mockQueryParamMap = {
+        get: (key: string) => paramsMap.get(key),
+      };
+      activatedRouteMock.queryParamMap = of(mockQueryParamMap);
+
+      spyOn(component, 'onSubmit');
+      fixture.detectChanges();
+
+      expect(component['teams']()).toEqual(['Team1', 'Team2']);
+    });
+
+    it('should update sprints signal from query params', () => {
+      const paramsMap = new Map([
+        ['teams', 'Team1'],
+        ['sprints', 'Sprint1'],
+      ]);
+      const mockQueryParamMap = {
+        get: (key: string) => paramsMap.get(key),
+      };
+      activatedRouteMock.queryParamMap = of(mockQueryParamMap);
+
+      spyOn(component, 'onSubmit');
+      fixture.detectChanges();
+
+      expect(component['sprints']()).toBe('Sprint1');
+    });
+
+    it('should not call onSubmit if only teams are provided in query params', () => {
+      const paramsMap = new Map([['teams', 'Team1']]);
+      const mockQueryParamMap = {
+        get: (key: string) => paramsMap.get(key),
+      };
+      activatedRouteMock.queryParamMap = of(mockQueryParamMap);
+
+      const submitSpy = spyOn(component, 'onSubmit');
+      fixture.detectChanges();
+
+      expect(submitSpy).not.toHaveBeenCalled();
+    });
+
+    it('should parse boolean query params correctly', () => {
+      const paramsMap = new Map([
+        ['teams', 'Team1'],
+        ['sprints', 'Sprint1'],
+        ['includeDone', 'true'],
+        ['includeExternal', 'false'],
+      ]);
+      const mockQueryParamMap = {
+        get: (key: string) => paramsMap.get(key),
+      };
+      activatedRouteMock.queryParamMap = of(mockQueryParamMap);
+
+      spyOn(component, 'onSubmit');
+      fixture.detectChanges();
+
+      expect(component['includeDone']()).toBe(true);
+      expect(component['includeExternal']()).toBe(false);
+    });
+  });
 });
