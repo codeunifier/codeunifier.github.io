@@ -12,6 +12,7 @@ import { Statuses } from '../../constants/statuses';
 import { IndicatorType, SimpleIndicator } from './simple-indicator/simple-indicator';
 import { TicketDetailPanel } from './ticket-detail-panel/ticket-detail-panel';
 import { DragHandle } from '../drag-handle/drag-handle';
+import { StructuredVisualizerService } from '../../services/structured-visualizer.service';
 
 @Component({
   selector: 'app-visualizer',
@@ -47,7 +48,8 @@ export class VisualizerComponent {
   constructor(
     private jiraParser: JiraParserService,
     private jiraApi: JiraApiService,
-    private visualizer: VisualizerService,
+    // private visualizer: VisualizerService,
+    private visualizer: StructuredVisualizerService,
     private cdr: ChangeDetectorRef
   ) {}
 
