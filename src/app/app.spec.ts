@@ -1,10 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [App],
+      imports: [
+        App, 
+        NoopAnimationsModule // Necessary because FormComponent uses Material
+      ],
+      providers: [
+        provideRouter([]) // This provides both ActivatedRoute and Router
+      ],
     }).compileComponents();
   });
 
@@ -18,6 +26,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, jira-blocker-chain-angular');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Jira Blocker Chain Visualizer');
   });
 });

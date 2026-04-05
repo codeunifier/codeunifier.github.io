@@ -14,6 +14,10 @@ describe('TicketDetailPanel', () => {
 
     fixture = TestBed.createComponent(TicketDetailPanel);
     component = fixture.componentInstance;
+
+    fixture.componentRef.setInput('ticket', { fields: { status: { name: 'Open' } } });
+    fixture.componentRef.setInput('projectName', 'test-project');
+
     fixture.detectChanges();
   });
 

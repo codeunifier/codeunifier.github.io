@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { SimpleIndicator } from './simple-indicator';
 
 describe('SimpleIndicator', () => {
@@ -9,11 +8,14 @@ describe('SimpleIndicator', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SimpleIndicator]
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SimpleIndicator);
     component = fixture.componentInstance;
+
+    fixture.componentRef.setInput('type', 'info'); 
+    fixture.componentRef.setInput('label', 'Test Label');
+    
     fixture.detectChanges();
   });
 
