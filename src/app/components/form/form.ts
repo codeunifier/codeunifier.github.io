@@ -1,7 +1,6 @@
-import { Component, computed, effect, EventEmitter, input, Input, OnDestroy, OnInit, Output, signal } from '@angular/core';
+import { Component, computed, effect, EventEmitter, inject, input, Input, OnDestroy, OnInit, Output, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormGroup, FormsModule } from '@angular/forms';
 import { FormData } from '../../models';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
@@ -10,7 +9,9 @@ import { LocalStorageService } from '../../services/local-storage.service';
 import { LocalData } from '../../models/local-data.model';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-form',
@@ -20,7 +21,10 @@ import { Subject, takeUntil } from 'rxjs';
   standalone: true
 })
 export class FormComponent implements OnInit, OnDestroy {
-  myForm!: FormGroup;
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
+  private queryParams = toSignal(this.router.routerState.root.queryParams);
 
   protected readonly projectName = signal(environment.jiraProjectName);
   protected readonly apiToken = signal(environment.jiraApiToken);
@@ -32,22 +36,10 @@ export class FormComponent implements OnInit, OnDestroy {
   protected readonly includeExternal = signal(false);
   protected readonly errorMessage = signal('');
 
-  protected readonly formValue = computed(() => ({
-    projectName: this.projectName(),
-    apiToken: this.apiToken(),
-    email: this.email(),
-    teams: this.teams(),
-    sprints: this.sprints(),
-    includeDone: this.includeDone(),
-    includeExternal: this.includeExternal(),
-  }));
-
   protected readonly formErrors = computed(() => {
     const errors: string[] = [];
 
-    const formData = this.formValue();
-
-    if (!formData.projectName.trim() || !formData.apiToken || !formData.email.trim() || !formData.teams.length || !formData.sprints.trim()) {
+    if (!this.projectName().trim() || !this.apiToken() || !this.email().trim() || !this.teams().length || !this.sprints().trim()) {
       errors.push('All fields are required.');
     }
 
@@ -57,6 +49,16 @@ export class FormComponent implements OnInit, OnDestroy {
   protected readonly isFormValid = computed(() => {
     return this.formErrors().length === 0;
   });
+
+  protected formData = computed<FormData>(() => ({
+    projectName: this.projectName(),
+    apiToken: this.apiToken(),
+    email: this.email(),
+    teams: this.teams(),
+    sprints: this.sprints(),
+    includeDone: this.includeDone(),
+    includeExternal: this.includeExternal(),
+  }));
 
   isLoading = input<boolean>(false);
 
@@ -70,14 +72,14 @@ export class FormComponent implements OnInit, OnDestroy {
 
   constructor(
     private localStorageService: LocalStorageService,
-    private router: Router,
-    private route: ActivatedRoute
   ) {
     effect(() => {
       // sync the form values with the query params
-      const formData = this.formValue();
+      const formData = this.formData();
       
       if (!this.isInitialized) {
+        // subscribes to the queryParams signal
+        this.loadQueryParamsFromSnapshot();
         return;
       }
       
@@ -97,10 +99,6 @@ export class FormComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const localData = this.localStorageService.getFromLocalStorage();
     this.initFromLocalData(localData);
-    this.initForm();
-    this.initQueryParamSync();
-
-    setTimeout(() => this.isInitialized = true, 0);
   }
 
   private initFromLocalData(localData?: LocalData): void {
@@ -112,46 +110,32 @@ export class FormComponent implements OnInit, OnDestroy {
     }
   }
 
-  private initForm(): void {
-    this.myForm = new FormGroup({
-      projectName: new FormControl(this.projectName()),
-      apiToken: new FormControl(this.apiToken()),
-      email: new FormControl(this.email()),
-      teams: new FormControl(this.teams()),
-      sprints: new FormControl(this.sprints()),
-      includeDone: new FormControl(this.includeDone()),
-      includeExternal: new FormControl(this.includeExternal()),
-    });
-  }
+  private loadQueryParamsFromSnapshot(): void {
+    const params = this.queryParams();
 
-  private initQueryParamSync(): void {
-    this.route.queryParamMap
-      .pipe(
-        takeUntil(this.destroy$)
-      )
-      .subscribe((params) => {
-        const teams = params.get('teams');
-        const sprints = params.get('sprints');
-        const includeDone = params.get('includeDone');
-        const includeExternal = params.get('includeExternal');
+    if (!params || Object.keys(params).length === 0) return;
 
-        if (teams) {
-          this.teams.set(teams.split(','));
-        }
-        if (sprints) {
-          this.sprints.set(sprints);
-        }
-        if (includeDone) {
-          this.includeDone.set(includeDone === 'true');
-        }
-        if (includeExternal) {
-          this.includeExternal.set(includeExternal === 'true');
-        }
+    this.isInitialized = true;
 
-        if (teams && sprints) {
-          this.onSubmit();
-        }
-      });
+    console.log('Query params:', params);
+    
+    const teams = params['teams'];
+    const sprints = params['sprints'];
+    const includeDone = params['includeDone'];
+    const includeExternal = params['includeExternal'];
+
+    if (teams) {
+      this.teams.set(teams.split(','));
+    }
+    if (sprints) {
+      this.sprints.set(sprints);
+    }
+    if (includeDone) {
+      this.includeDone.set(includeDone === 'true');
+    }
+    if (includeExternal) {
+      this.includeExternal.set(includeExternal === 'true');
+    }
   }
 
   ngOnDestroy() {
@@ -161,11 +145,11 @@ export class FormComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.rememberToken()) {
-      this.localStorageService.saveToLocalStorage(this.formValue());
+      this.localStorageService.saveToLocalStorage(this.formData());
     } else {
       this.localStorageService.clearLocalStorage();
     }
 
-    this.formSubmit.emit(this.formValue());
+    this.formSubmit.emit(this.formData());
   }
 }
