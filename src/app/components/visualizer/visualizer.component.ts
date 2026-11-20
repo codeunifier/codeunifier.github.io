@@ -124,46 +124,25 @@ export class VisualizerComponent {
   }
 
   downloadSvg(): void {
-    if (!this.graphSvg) {
+    const svgString = this.serializeSvgAtDisplayedSize();
+    if (!svgString) {
       return;
-    }
-
-    // Temporarily set width and height to ensure proper export
-    const originalWidth = this.graphSvg.nativeElement.getAttribute('width');
-    const originalHeight = this.graphSvg.nativeElement.getAttribute('height');
-
-    this.graphSvg.nativeElement.setAttribute('width', '100%');
-    this.graphSvg.nativeElement.setAttribute('height', this.graphHeight.toString());
-
-    const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(this.graphSvg.nativeElement);
-
-    if (originalWidth) {
-      this.graphSvg.nativeElement.setAttribute('width', originalWidth);
-    }
-    if (originalHeight) {
-      this.graphSvg.nativeElement.setAttribute('height', originalHeight);
     }
 
     const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'graph.svg';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    this.triggerDownload(url, 'graph.svg');
     URL.revokeObjectURL(url);
   }
 
   downloadPng(): void {
-    if (!this.graphSvg) {
+    const svgString = this.serializeSvgAtDisplayedSize();
+    if (!svgString || !this.graphSvg) {
       return;
     }
 
-    const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(this.graphSvg.nativeElement);
+    // Capture the size now: the image loads asynchronously and the canvas may be resized meanwhile.
+    const { width, height } = this.displayedSize(this.graphSvg.nativeElement);
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
 
@@ -172,26 +151,73 @@ export class VisualizerComponent {
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      context?.drawImage(img, 0, 0);
+      canvas.width = width;
+      canvas.height = height;
+      context?.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(url);
 
       canvas.toBlob((blob) => {
         if (blob) {
           const pngUrl = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = pngUrl;
-          link.download = 'graph.png';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          this.triggerDownload(pngUrl, 'graph.png');
           URL.revokeObjectURL(pngUrl);
         }
       }, 'image/png');
     };
 
     img.src = url;
+  }
+
+  /**
+   * Serialize the graph exactly as it is shown right now.
+   *
+   * The renderer stamps `width`/`height` on the svg once, at layout time, while CSS stretches the
+   * element to the container whenever the user drags the canvas taller. Exports read those
+   * attributes, so swap in the rendered size for the duration of the serialization.
+   */
+  private serializeSvgAtDisplayedSize(): string | null {
+    if (!this.graphSvg) {
+      return null;
+    }
+
+    const svg = this.graphSvg.nativeElement;
+    const { width, height } = this.displayedSize(svg);
+    const originalWidth = svg.getAttribute('width');
+    const originalHeight = svg.getAttribute('height');
+
+    svg.setAttribute('width', width.toString());
+    svg.setAttribute('height', height.toString());
+
+    try {
+      return new XMLSerializer().serializeToString(svg);
+    } finally {
+      this.restoreAttribute(svg, 'width', originalWidth);
+      this.restoreAttribute(svg, 'height', originalHeight);
+    }
+  }
+
+  private displayedSize(svg: SVGSVGElement): { width: number; height: number } {
+    return {
+      width: svg.clientWidth || Number(svg.getAttribute('width')) || 1200,
+      height: svg.clientHeight || Number(svg.getAttribute('height')) || this.graphHeight,
+    };
+  }
+
+  private restoreAttribute(element: Element, name: string, value: string | null): void {
+    if (value === null) {
+      element.removeAttribute(name);
+    } else {
+      element.setAttribute(name, value);
+    }
+  }
+
+  private triggerDownload(url: string, filename: string): void {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   onResizeGraph(newHeight: number): void {
