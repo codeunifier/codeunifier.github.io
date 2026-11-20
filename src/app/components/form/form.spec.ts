@@ -29,7 +29,9 @@ describe('FormComponent', () => {
       'clearLocalStorage',
     ]);
 
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate'], {
+      routerState: { root: { queryParams: of({}) } },
+    });
     
     activatedRouteMock = {
       queryParamMap: of(new Map()),
@@ -89,11 +91,13 @@ describe('FormComponent', () => {
       expect(component['rememberToken']()).toBe(false);
     });
 
-    it('should create FormGroup with correct structure', () => {
+    it('should expose the form values as a single object', () => {
       fixture.detectChanges();
 
-      expect(component.myForm).toBeDefined();
-      expect(component.myForm.get('projectName')).toBeDefined();
+      const formData = component['formData']();
+      expect(formData.projectName).toBe('');
+      expect(formData.teams).toEqual(['Armadillo']);
+      expect(formData.includeDone).toBeFalse();
     });
   });
 

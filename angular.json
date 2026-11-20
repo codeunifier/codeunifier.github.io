@@ -74,7 +74,18 @@
               ],
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "fixtures",
+                  "output": "/fixtures"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"

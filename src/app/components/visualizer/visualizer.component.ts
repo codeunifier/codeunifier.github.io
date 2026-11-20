@@ -12,7 +12,6 @@ import { Statuses } from '../../constants/statuses';
 import { IndicatorType, SimpleIndicator } from './simple-indicator/simple-indicator';
 import { TicketDetailPanel } from './ticket-detail-panel/ticket-detail-panel';
 import { DragHandle } from '../drag-handle/drag-handle';
-import { StructuredVisualizerService } from '../../services/structured-visualizer.service';
 
 @Component({
   selector: 'app-visualizer',
@@ -49,7 +48,6 @@ export class VisualizerComponent {
     private jiraParser: JiraParserService,
     private jiraApi: JiraApiService,
     private visualizer: VisualizerService,
-    // private visualizer: StructuredVisualizerService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -111,6 +109,13 @@ export class VisualizerComponent {
         this.cdr.markForCheck();
       }, this.graphSvg);
     }
+  }
+
+  /** Put every node back where the layout placed it and fit the graph to the viewport. */
+  resetLayout(): void {
+    this.ticketForDetailedView = null;
+    this.visualize();
+    this.cdr.markForCheck();
   }
 
   private showDetailedTicketView(ticket: JiraTicket): void {

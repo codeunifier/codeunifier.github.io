@@ -8,9 +8,8 @@ export interface GraphNode {
   status: string;
   color: string;
   shape?: NodeShape;
+  /** Center position assigned by the layout. */
   x?: number;
   y?: number;
-  fx?: number | null;
-  fy?: number | null;
   ticket?: JiraTicket;
 }

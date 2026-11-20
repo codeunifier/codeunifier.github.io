@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { JIRA_TEAMS } from "../constants/jira-teams";
 import { FormData } from "../models/form-data.model";
 import { JiraApiResponse, JiraTicket } from "../models";
+import { environment } from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
@@ -30,6 +31,10 @@ export class JiraApiService {
   }
 
   async getTickets(formData: FormData): Promise<JiraApiResponse> {
+    if (environment.fixtureUrl) {
+      return this.getTicketsFromFixture(environment.fixtureUrl);
+    }
+
     const auth = btoa(`${formData.email}:${formData.apiToken}`);
 
     // First, fetch the tickets that match the team and sprint criteria
@@ -45,6 +50,21 @@ export class JiraApiService {
     const combinedTickets: JiraTicket[] = this.combineTickets(tickets.issues, blockingTickets.issues, blockedTickets.issues);
     
     return { issues: combinedTickets };
+  }
+
+  /**
+   * Local development only: load a saved Jira response instead of calling the API.
+   * The fixture holds the core tickets and any external blockers/blocked tickets in one list.
+   */
+  private async getTicketsFromFixture(url: string): Promise<JiraApiResponse> {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Failed to load fixture ${url}: ${response.status} ${response.statusText}`);
+    }
+
+    const data: JiraApiResponse = await response.json();
+    return { issues: this.combineTickets(data.issues, [], []) };
   }
 
   private combineTickets(tickets: JiraTicket[], blockingTickets: JiraTicket[], blockedTickets: JiraTicket[]): JiraTicket[] {

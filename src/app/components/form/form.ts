@@ -102,9 +102,9 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   private initFromLocalData(localData?: LocalData): void {
-    this.projectName.set(localData?.projectName || '');
-    this.apiToken.set(localData?.apiToken || '');
-    this.email.set(localData?.email || '');
+    this.projectName.set(localData?.projectName || environment.jiraProjectName);
+    this.apiToken.set(localData?.apiToken || environment.jiraApiToken);
+    this.email.set(localData?.email || environment.jiraAccountEmail);
     if (localData) {
       this.rememberToken.set(true);
     }
