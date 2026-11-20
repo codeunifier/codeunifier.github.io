@@ -271,7 +271,7 @@ export class VisualizerService {
       .attr('stroke', '#fff')
       .attr('stroke-width', 3)
       .style('cursor', 'pointer')
-      .on('click', (event: MouseEvent) => {
+      .on('click', (event: Event) => {
         event.stopPropagation();
         onClick(d.id);
       });
